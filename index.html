@@ -57,6 +57,38 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 /* OVERLAYS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;}
 .overlay.hidden{display:none!important;}
+
+/* WEEKLY SCHEDULE */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.week-nav-title{font-family:"Bebas Neue",sans-serif;font-size:1.3rem;letter-spacing:.06em;}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px;}
+.week-day-col{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.week-day-hdr{padding:10px 6px;text-align:center;border-bottom:1px solid var(--border);position:sticky;top:63px;background:var(--card);z-index:10;}
+.week-day-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.week-day-num{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;line-height:1.1;}
+.week-day-hdr.today .week-day-num{color:var(--primary);}
+.week-day-hdr.today{border-bottom-color:var(--primary);}
+.week-lessons{padding:6px;display:flex;flex-direction:column;gap:6px;min-height:80px;}
+.lesson-chip{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:8px;cursor:pointer;transition:.15s;position:relative;}
+.lesson-chip:hover{border-color:var(--primary);background:var(--pglow2);}
+.lesson-chip-time{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.04em;}
+.lesson-chip-name{font-size:12px;font-weight:600;margin-top:2px;line-height:1.3;}
+.lesson-chip-count{font-size:10px;color:var(--muted);margin-top:3px;}
+.lesson-chip.add-chip{border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:48px;color:var(--muted2);font-size:20px;transition:.15s;}
+.lesson-chip.add-chip:hover{color:var(--primary);border-color:var(--primary);}
+
+/* ATTENDANCE MODAL */
+.attendance-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;}
+.att-row{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border);}
+.att-av{width:32px;height:32px;border-radius:8px;object-fit:cover;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.att-name{flex:1;font-size:13px;font-weight:600;}
+.att-pass{font-size:11px;color:var(--muted);}
+.att-btns{display:flex;gap:4px;}
+.att-btn{width:30px;height:30px;border:1px solid var(--border2);border-radius:7px;background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.att-btn:hover{background:var(--card2);}
+.att-btn.active-present{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);}
+.att-btn.active-absent{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
+.att-btn.active-cash{background:rgba(250,204,21,.15);border-color:rgba(250,204,21,.4);}
 .modal{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:2rem;width:min(500px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:popIn .3s cubic-bezier(.175,.885,.32,1.275);}
 .modal.wide{width:min(660px,100%);}
 @keyframes popIn{from{opacity:0;transform:scale(.93) translateY(12px)}to{opacity:1;transform:none}}
@@ -263,9 +295,73 @@ tr:hover td{background:rgba(255,255,255,.02);}
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:99999;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:slideUp .3s ease;max-width:300px;border-left:3px solid var(--primary);}
 .toast.hidden{display:none!important;}
+
+/* WEEKLY SCHEDULE */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.week-nav-title{font-family:"Bebas Neue",sans-serif;font-size:1.3rem;letter-spacing:.06em;}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px;}
+.week-day-col{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.week-day-hdr{padding:10px 6px;text-align:center;border-bottom:1px solid var(--border);position:sticky;top:63px;background:var(--card);z-index:10;}
+.week-day-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.week-day-num{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;line-height:1.1;}
+.week-day-hdr.today .week-day-num{color:var(--primary);}
+.week-day-hdr.today{border-bottom-color:var(--primary);}
+.week-lessons{padding:6px;display:flex;flex-direction:column;gap:6px;min-height:80px;}
+.lesson-chip{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:8px;cursor:pointer;transition:.15s;position:relative;}
+.lesson-chip:hover{border-color:var(--primary);background:var(--pglow2);}
+.lesson-chip-time{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.04em;}
+.lesson-chip-name{font-size:12px;font-weight:600;margin-top:2px;line-height:1.3;}
+.lesson-chip-count{font-size:10px;color:var(--muted);margin-top:3px;}
+.lesson-chip.add-chip{border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:48px;color:var(--muted2);font-size:20px;transition:.15s;}
+.lesson-chip.add-chip:hover{color:var(--primary);border-color:var(--primary);}
+
+/* ATTENDANCE MODAL */
+.attendance-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;}
+.att-row{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border);}
+.att-av{width:32px;height:32px;border-radius:8px;object-fit:cover;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.att-name{flex:1;font-size:13px;font-weight:600;}
+.att-pass{font-size:11px;color:var(--muted);}
+.att-btns{display:flex;gap:4px;}
+.att-btn{width:30px;height:30px;border:1px solid var(--border2);border-radius:7px;background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.att-btn:hover{background:var(--card2);}
+.att-btn.active-present{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);}
+.att-btn.active-absent{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
+.att-btn.active-cash{background:rgba(250,204,21,.15);border-color:rgba(250,204,21,.4);}
 @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 .hidden{display:none!important;}
+
+/* WEEKLY SCHEDULE */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.week-nav-title{font-family:"Bebas Neue",sans-serif;font-size:1.3rem;letter-spacing:.06em;}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px;}
+.week-day-col{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.week-day-hdr{padding:10px 6px;text-align:center;border-bottom:1px solid var(--border);position:sticky;top:63px;background:var(--card);z-index:10;}
+.week-day-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.week-day-num{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;line-height:1.1;}
+.week-day-hdr.today .week-day-num{color:var(--primary);}
+.week-day-hdr.today{border-bottom-color:var(--primary);}
+.week-lessons{padding:6px;display:flex;flex-direction:column;gap:6px;min-height:80px;}
+.lesson-chip{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:8px;cursor:pointer;transition:.15s;position:relative;}
+.lesson-chip:hover{border-color:var(--primary);background:var(--pglow2);}
+.lesson-chip-time{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.04em;}
+.lesson-chip-name{font-size:12px;font-weight:600;margin-top:2px;line-height:1.3;}
+.lesson-chip-count{font-size:10px;color:var(--muted);margin-top:3px;}
+.lesson-chip.add-chip{border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:48px;color:var(--muted2);font-size:20px;transition:.15s;}
+.lesson-chip.add-chip:hover{color:var(--primary);border-color:var(--primary);}
+
+/* ATTENDANCE MODAL */
+.attendance-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;}
+.att-row{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border);}
+.att-av{width:32px;height:32px;border-radius:8px;object-fit:cover;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.att-name{flex:1;font-size:13px;font-weight:600;}
+.att-pass{font-size:11px;color:var(--muted);}
+.att-btns{display:flex;gap:4px;}
+.att-btn{width:30px;height:30px;border:1px solid var(--border2);border-radius:7px;background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.att-btn:hover{background:var(--card2);}
+.att-btn.active-present{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);}
+.att-btn.active-absent{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
+.att-btn.active-cash{background:rgba(250,204,21,.15);border-color:rgba(250,204,21,.4);}
 .spin{animation:spin 1s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -399,6 +495,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
   <div class="nav-sep"></div>
   <div class="nav-label">Admin</div>
   <button class="nav-item hidden" id="nav-admin" onclick="showPage('admin')"><span class="ni">⚙️</span><span>Admin</span></button>
+  <button class="nav-item hidden" id="nav-orarend" onclick="showPage('orarend')"><span class="ni">📋</span><span>Órarend</span></button>
 </nav>
 
 <!-- MAIN -->
@@ -589,6 +686,16 @@ tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 
+  <!-- ÓRAREND -->
+  <div id="page-orarend" class="page">
+    <div class="week-nav">
+      <button class="cal-nav" onclick="prevWeek()">‹</button>
+      <div class="week-nav-title" id="week-title"></div>
+      <button class="cal-nav" onclick="nextWeek()">›</button>
+    </div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+
 </div><!-- /main-content -->
 </div><!-- /app -->
 
@@ -667,6 +774,7 @@ async function setupUI(user,ud){
   const ageLabel=ud.ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior (kedvezményes)</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
   document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[ud.role||'user']||'Tanuló'}</span>${ageLabel}`;
   if(isAdmin){document.getElementById('nav-admin').classList.remove('hidden');}
+  if(isCoach){document.getElementById('nav-orarend').classList.remove('hidden');}
   await Promise.all([loadServices(),loadPasses(),loadHomeStats()]);
   renderCalendar();
   listenConversations();
@@ -716,6 +824,7 @@ window.showPage=page=>{
   if(page==='reviews')loadReviews();
   if(page==='passes')renderActivePasses();
   if(page==='admin'){switchAdmin('dashboard',document.querySelector('.admin-nav-item'));loadAdminData();}
+  if(page==='orarend')renderWeekSchedule();
   if(page==='services')renderServicesPage();
   if(page==='messages')renderConvList();
 };
@@ -1336,6 +1445,244 @@ async function loadAdminUsers(){
 window.setUserRole=async(uid,role)=>{await updateDoc(doc(db,"mgiUsers",uid),{role});delete userCache[uid];toast('✅ Rang frissítve!');};
 
 window.onServiceSelect=()=>{selectedServiceId=document.getElementById('book-service-sel').value;};
+
+// ── WEEKLY SCHEDULE ──
+let weekOffset=0;
+function getWeekDates(offset=0){
+  const now=new Date();
+  const day=now.getDay();
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-(day===0?6:day-1)+offset*7);
+  monday.setHours(0,0,0,0);
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);days.push(d);}
+  return days;
+}
+const DAYS_HU=['Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat','Vasárnap'];
+const DAYS_SHORT=['H','K','Sze','Cs','P','Szo','V'];
+
+window.prevWeek=()=>{weekOffset--;renderWeekSchedule();};
+window.nextWeek=()=>{weekOffset++;renderWeekSchedule();};
+
+async function renderWeekSchedule(){
+  const days=getWeekDates(weekOffset);
+  const from=days[0].toISOString().slice(0,10);
+  const to=days[6].toISOString().slice(0,10);
+  // Title
+  const opts={month:'long',day:'numeric'};
+  document.getElementById('week-title').innerText=`${days[0].toLocaleDateString('hu-HU',opts)} – ${days[6].toLocaleDateString('hu-HU',opts)}`;
+  // Load lessons for this week
+  const snap=await getDocs(query(collection(db,'mgiLessons'),where('date','>=',from),where('date','<=',to),orderBy('date','asc')));
+  const lessonsByDate={};
+  snap.forEach(d=>{const l={id:d.id,...d.data()};if(!lessonsByDate[l.date])lessonsByDate[l.date]=[];lessonsByDate[l.date].push(l);});
+  // Also load recurring lessons
+  const recSnap=await getDocs(collection(db,'mgiRecurringLessons'));
+  const recurring=[];recSnap.forEach(d=>recurring.push({id:d.id,...d.data()}));
+  const todayStr=new Date().toISOString().slice(0,10);
+  const grid=document.getElementById('week-grid');grid.innerHTML='';
+  days.forEach((date,i)=>{
+    const ds=date.toISOString().slice(0,10);
+    const isToday=ds===todayStr;
+    const dayNum=i; // 0=Mon...6=Sun
+    // Get recurring for this weekday
+    const recForDay=recurring.filter(r=>r.weekday===dayNum);
+    // Get one-time lessons
+    const oneTime=lessonsByDate[ds]||[];
+    const col=document.createElement('div');col.className='week-day-col';
+    col.innerHTML=`<div class="week-day-hdr${isToday?' today':''}"><div class="week-day-name">${DAYS_SHORT[i]}</div><div class="week-day-num">${date.getDate()}</div></div><div class="week-lessons" id="wl-${ds}"></div>`;
+    grid.appendChild(col);
+    const lessonWrap=col.querySelector('.week-lessons');
+    // Render recurring
+    recForDay.sort((a,b)=>a.time.localeCompare(b.time)).forEach(r=>{
+      const chip=document.createElement('div');chip.className='lesson-chip';
+      chip.innerHTML=`<div class="lesson-chip-time">${r.time}</div><div class="lesson-chip-name">${esc(r.name)}</div><div class="lesson-chip-count">👥 ${(r.students||[]).length} tanuló</div>`;
+      chip.onclick=()=>openLessonModal(r,ds,true);
+      lessonWrap.appendChild(chip);
+    });
+    oneTime.sort((a,b)=>a.time.localeCompare(b.time)).forEach(l=>{
+      const chip=document.createElement('div');chip.className='lesson-chip';
+      chip.innerHTML=`<div class="lesson-chip-time">${l.time}</div><div class="lesson-chip-name">${esc(l.name)}</div><div class="lesson-chip-count">👥 ${(l.students||[]).length} tanuló</div>`;
+      chip.onclick=()=>openLessonModal(l,ds,false);
+      lessonWrap.appendChild(chip);
+    });
+    // Add button
+    const addChip=document.createElement('div');addChip.className='lesson-chip add-chip';addChip.innerHTML='+';
+    addChip.onclick=()=>openAddLesson(ds,dayNum);
+    lessonWrap.appendChild(addChip);
+  });
+}
+
+// Open add lesson modal
+window.openAddLesson=async(date,weekday)=>{
+  const el=document.createElement('div');el.className='overlay';el.id='addlesson-overlay';
+  // Load all users for student picker
+  const snap=await getDocs(collection(db,'mgiUsers'));
+  let userOpts='';snap.forEach(d=>{if(d.data().role==='user')userOpts+=`<option value="${d.id}">${esc(d.data().name||'?')}</option>`;});
+  el.innerHTML=`<div class="modal">
+    <button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button>
+    <div class="modal-title">Új óra hozzáadása</div>
+    <div class="form-group"><label class="lbl">Óra neve</label><input class="inp" type="text" id="al-name" placeholder="pl. Kezdő gitáróra"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="lbl">Időpont</label><input class="inp" type="time" id="al-time" value="10:00"></div>
+      <div class="form-group"><label class="lbl">Típus</label>
+        <select class="inp" id="al-type" style="margin-bottom:0;">
+          <option value="recurring">Fix ismétlődő (hetente)</option>
+          <option value="onetime">Csak ez az alkalom</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="lbl">Tanulók hozzárendelése</label>
+      <select class="inp" id="al-students" multiple style="min-height:100px;margin-bottom:0;">${userOpts}</select>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Ctrl/Cmd + kattintás = több kiválasztás</div>
+    </div>
+    <button class="btn btn-primary btn-w" style="margin-top:8px;" onclick="saveLesson('${date}',${weekday})">💾 Mentés</button>
+    <p class="err" id="al-err"></p>
+  </div>`;
+  document.body.appendChild(el);
+};
+
+window.saveLesson=async(date,weekday)=>{
+  const name=document.getElementById('al-name').value.trim();
+  const time=document.getElementById('al-time').value;
+  const type=document.getElementById('al-type').value;
+  const sel=document.getElementById('al-students');
+  const students=[...sel.selectedOptions].map(o=>o.value);
+  if(!name||!time){document.getElementById('al-err').innerText='Töltsd ki a kötelező mezőket!';return;}
+  const data={name,time,students,createdAt:serverTimestamp()};
+  if(type==='recurring'){data.weekday=weekday;await addDoc(collection(db,'mgiRecurringLessons'),data);}
+  else{data.date=date;await addDoc(collection(db,'mgiLessons'),data);}
+  document.getElementById('addlesson-overlay').remove();
+  toast('✅ Óra hozzáadva!');renderWeekSchedule();
+};
+
+// Open lesson attendance modal
+window.openLessonModal=async(lesson,date,isRecurring)=>{
+  const el=document.createElement('div');el.className='overlay';el.id='attendance-overlay';
+  el.innerHTML=`<div class="modal wide">
+    <button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button>
+    <div class="modal-title">${esc(lesson.name)}</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">📅 ${friendlyDate(date)} &nbsp;·&nbsp; 🕐 ${lesson.time}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Jelenléti ív</div>
+      <button class="btn btn-outline btn-sm" onclick="openAddStudentToLesson('${lesson.id}','${date}',${isRecurring})">+ Tanuló hozzáadása</button>
+    </div>
+    <div class="attendance-list" id="att-list"><div style="color:var(--muted);text-align:center;padding:20px;">Betöltés...</div></div>
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="saveAttendance('${lesson.id}','${date}',${isRecurring})">💾 Jelenléti ív mentése</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLesson('${lesson.id}',${isRecurring})">🗑 Óra törlése</button>
+    </div>
+    <p class="suc" id="att-msg"></p>
+  </div>`;
+  document.body.appendChild(el);
+  await loadAttendanceList(lesson,date,isRecurring);
+};
+
+const attState={};// uid -> 'present'|'absent'|'cash'
+
+async function loadAttendanceList(lesson,date,isRecurring){
+  const list=document.getElementById('att-list');list.innerHTML='';
+  // Load existing attendance for this date
+  const attSnap=await getDocs(query(collection(db,'mgiAttendance'),where('lessonId','==',lesson.id),where('date','==',date)));
+  const existingAtt={};attSnap.forEach(d=>{const a=d.data();existingAtt[a.uid]={...a,docId:d.id};});
+  Object.keys(attState).forEach(k=>delete attState[k]);
+  // Load students
+  const students=lesson.students||[];
+  if(!students.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px;">Nincs hozzárendelt tanuló. Adj hozzá!</div>';return;}
+  for(const uid of students){
+    const u=await getCachedUser(uid);
+    // Get active pass
+    const psnap=await getDocs(query(collection(db,'mgiPasses'),where('uid','==',uid),where('status','==','active')));
+    let passInfo='<span style="color:var(--danger);font-size:11px;">❌ Nincs bérlet</span>';
+    let passId=null;let passLeft=0;
+    if(!psnap.empty){const p={id:psnap.docs[0].id,...psnap.docs[0].data()};passId=p.id;passLeft=p.lessonsLeft;passInfo=`<span style="color:var(--accent2);font-size:11px;">🎫 ${p.name} – ${p.lessonsLeft} alkalom</span>`;}
+    const existing=existingAtt[uid];
+    const curState=existing?existing.status:'';
+    attState[uid]={status:curState,passId,passLeft,docId:existing?.docId||null};
+    const row=document.createElement('div');row.className='att-row';
+    row.dataset.uid=uid;
+    row.innerHTML=`
+      <img class="att-av" src="${u.avatar}" onerror="this.innerText='👤'">
+      <div style="flex:1;min-width:0;">
+        <div class="att-name">${esc(u.name)}</div>
+        <div class="att-pass">${passInfo}</div>
+      </div>
+      <div class="att-btns">
+        <button class="att-btn ${curState==='present'?'active-present':''}" title="Jelen" onclick="setAtt('${uid}','present',this)">✅</button>
+        <button class="att-btn ${curState==='absent'?'active-absent':''}" title="Hiányzik" onclick="setAtt('${uid}','absent',this)">❌</button>
+        <button class="att-btn ${curState==='cash'?'active-cash':''}" title="Helyszíni fizetés" onclick="setAtt('${uid}','cash',this)">💵</button>
+      </div>`;
+    list.appendChild(row);
+  }
+}
+
+window.setAtt=(uid,status,btn)=>{
+  // Toggle
+  if(attState[uid]?.status===status){attState[uid].status='';btn.closest('.att-btns').querySelectorAll('.att-btn').forEach(b=>b.className='att-btn');return;}
+  attState[uid]={...attState[uid],status};
+  btn.closest('.att-btns').querySelectorAll('.att-btn').forEach(b=>b.className='att-btn');
+  if(status==='present')btn.className='att-btn active-present';
+  else if(status==='absent')btn.className='att-btn active-absent';
+  else if(status==='cash')btn.className='att-btn active-cash';
+};
+
+window.saveAttendance=async(lessonId,date,isRecurring)=>{
+  const msg=document.getElementById('att-msg');msg.innerText='';
+  for(const [uid,state] of Object.entries(attState)){
+    if(!state.status)continue;
+    const data={lessonId,uid,date,status:state.status,savedAt:serverTimestamp()};
+    if(state.docId){await updateDoc(doc(db,'mgiAttendance',state.docId),data);}
+    else{await addDoc(collection(db,'mgiAttendance'),data);}
+    // Deduct pass if present and has pass
+    if(state.status==='present'&&state.passId&&state.passLeft>0){
+      const newLeft=state.passLeft-1;
+      await updateDoc(doc(db,'mgiPasses',state.passId),{lessonsLeft:newLeft,lastUsed:serverTimestamp()});
+      if(newLeft<=0){
+        await updateDoc(doc(db,'mgiPasses',state.passId),{status:'expired'});
+        // Send expiry email
+        const uData=await getCachedUser(uid);
+        try{await emailjs.send(EJS_SVC,EJS_PASS_EXPIRED,{to_name:uData.name,to_email:uData.email||'',pass_name:'Bérlet',end_date:new Date().toLocaleDateString('hu-HU'),lessons_used:uData.lessonsTotal||'?',lessons_total:uData.lessonsTotal||'?'});}catch(e){console.warn('EJS:',e);}
+        toast(`⚠️ ${uData.name} bérlte elfogyott!`,4000);
+      }
+      state.passLeft=newLeft;
+    }
+  }
+  msg.innerText='✅ Jelenléti ív mentve!';
+  setTimeout(()=>msg.innerText='',2500);
+  renderWeekSchedule();
+};
+
+window.openAddStudentToLesson=async(lessonId,date,isRecurring)=>{
+  const snap=await getDocs(collection(db,'mgiUsers'));
+  let opts='';snap.forEach(d=>{if(d.data().role==='user')opts+=`<option value="${d.id}">${esc(d.data().name||'?')}</option>`;});
+  const el=document.createElement('div');el.className='overlay';
+  el.innerHTML=`<div class="modal"><button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button>
+    <div class="modal-title">Tanuló hozzáadása</div>
+    <select class="inp" id="add-stu-sel" multiple style="min-height:120px;">${opts}</select>
+    <button class="btn btn-primary btn-w" style="margin-top:8px;" onclick="addStudentsToLesson('${lessonId}',${isRecurring},this)">Hozzáadás</button></div>`;
+  document.body.appendChild(el);
+};
+
+window.addStudentsToLesson=async(lessonId,isRecurring,btn)=>{
+  const sel=document.getElementById('add-stu-sel');
+  const newStudents=[...sel.selectedOptions].map(o=>o.value);
+  if(!newStudents.length)return;
+  const coll=isRecurring?'mgiRecurringLessons':'mgiLessons';
+  const lsnap=await getDoc(doc(db,coll,lessonId));
+  const existing=lsnap.data().students||[];
+  const merged=[...new Set([...existing,...newStudents])];
+  await updateDoc(doc(db,coll,lessonId),{students:merged});
+  btn.closest('.overlay').remove();
+  document.getElementById('attendance-overlay').remove();
+  toast('✅ Tanuló hozzáadva!');renderWeekSchedule();
+};
+
+window.deleteLesson=async(lessonId,isRecurring)=>{
+  if(!confirm('Biztosan törlöd az órát?'))return;
+  const coll=isRecurring?'mgiRecurringLessons':'mgiLessons';
+  await deleteDoc(doc(db,coll,lessonId));
+  document.getElementById('attendance-overlay').remove();
+  toast('🗑 Óra törölve!');renderWeekSchedule();
+};
 </script>
 </body>
 </html>
