@@ -308,7 +308,13 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div class="form-group"><label class="lbl">Teljes név</label><input class="inp" type="text" id="reg-name" placeholder="Kovács Péter"></div>
       <div class="form-group"><label class="lbl">E-mail</label><input class="inp" type="email" id="reg-email" placeholder="te@email.com"></div>
       <div class="form-group"><label class="lbl">Jelszó</label><input class="inp" type="password" id="reg-pass" placeholder="min. 6 karakter"></div>
-      <button class="btn btn-primary btn-w" style="margin-top:4px;" onclick="doRegister()">Regisztráció</button>
+      <div class="form-group"><label class="lbl">Korcsoport</label>
+        <select class="inp" id="reg-age" style="margin-bottom:0;">
+          <option value="adult">18 év feletti</option>
+          <option value="junior">18 év alatti</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-w" style="margin-top:10px;" onclick="doRegister()">Regisztráció</button>
       <div class="divider">vagy</div>
       <button class="btn btn-outline btn-w" onclick="doGoogle()">🔵 Google</button>
     </div>
@@ -511,7 +517,13 @@ tr:hover td{background:rgba(255,255,255,.02);}
         </div>
       </div>
       <div class="form-group"><label class="lbl">Teljes név</label><input class="inp" type="text" id="prof-name-inp" placeholder="Neved"></div>
-      <button class="btn btn-primary btn-sm" onclick="saveProfile()">Mentés</button>
+      <div class="form-group"><label class="lbl">Korcsoport</label>
+        <select class="inp" id="prof-age-inp" style="margin-bottom:0;">
+          <option value="adult">18 év feletti</option>
+          <option value="junior">18 év alatti (kedvezményes)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="saveProfile()">Mentés</button>
       <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="margin-left:8px;">Kilépés</button>
       <p class="suc" id="prof-msg"></p>
     </div>
@@ -650,8 +662,10 @@ async function setupUI(user,ud){
   document.getElementById('prof-name-disp').innerText=ud.name||user.displayName||'?';
   document.getElementById('prof-email-disp').innerText=user.email;
   document.getElementById('prof-name-inp').value=ud.name||user.displayName||'';
+  if(document.getElementById('prof-age-inp')) document.getElementById('prof-age-inp').value=ud.ageGroup||'adult';
   const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
-  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[ud.role||'user']||'Tanuló'}</span>`;
+  const ageLabel=ud.ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior (kedvezményes)</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
+  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[ud.role||'user']||'Tanuló'}</span>${ageLabel}`;
   if(isAdmin){document.getElementById('nav-admin').classList.remove('hidden');}
   await Promise.all([loadServices(),loadPasses(),loadHomeStats()]);
   renderCalendar();
@@ -671,7 +685,8 @@ window.doRegister=async()=>{
   try{
     const cr=await createUserWithEmailAndPassword(auth,e,p);
     await updateProfile(cr.user,{displayName:name});
-    const ud={name,email:e,role:'user',createdAt:new Date().toISOString()};
+    const ageGroup=document.getElementById('reg-age').value;
+    const ud={name,email:e,role:'user',ageGroup,createdAt:new Date().toISOString()};
     await setDoc(doc(db,"mgiUsers",cr.user.uid),ud);
     await setupUI(cr.user,ud);
   }catch(err){document.getElementById('auth-err').innerText=err.code==='auth/email-already-in-use'?'Ez az e-mail már regisztrált.':err.message;}
@@ -877,9 +892,17 @@ async function loadPasses(){
 }
 function renderPassGrid(){
   const grid=document.getElementById('pass-grid');if(!grid)return;grid.innerHTML='';
-  passes.forEach(p=>{
+  const userAge=meData.ageGroup||'adult';
+  // Filter: show passes matching user's ageGroup, or passes with no ageGroup restriction
+  const filtered=passes.filter(p=>!p.ageGroup||p.ageGroup===userAge||p.ageGroup==='all');
+  if(!filtered.length){
+    grid.innerHTML=`<div style="color:var(--muted);padding:20px;grid-column:1/-1;">Nincs elérhető bérlet a korcsoportodhoz. Lépj kapcsolatba az oktatóval!</div>`;
+    return;
+  }
+  filtered.forEach(p=>{
     const card=document.createElement('div');card.className='pass-card'+(p.featured?' featured':'');
-    card.innerHTML=`${p.featured?'<div class="pass-badge">LEGJOBB ÉRTÉK</div>':''}<div class="pass-name">${esc(p.name)}</div><div class="pass-price">${fmt(p.price)}</div><div class="pass-details">${p.lessons} alkalom<br>${p.validDays||30} napig érvényes<br><span style="color:var(--muted);font-size:11px;">${fmt(Math.round(p.price/p.lessons))} / óra</span></div><button class="btn btn-primary btn-w" style="margin-top:14px;" onclick="buyPass('${p.id}')">Megveszem</button>`;
+    const ageBadge=p.ageGroup==='junior'?'<span class="badge badge-blue" style="margin-bottom:8px;display:inline-flex;">🎓 Junior ár</span><br>':p.ageGroup==='adult'?'<span class="badge badge-green" style="margin-bottom:8px;display:inline-flex;">👤 Felnőtt ár</span><br>':'';
+    card.innerHTML=`${p.featured?'<div class="pass-badge">LEGJOBB ÉRTÉK</div>':''}${ageBadge}<div class="pass-name">${esc(p.name)}</div><div class="pass-price">${fmt(p.price)}</div><div class="pass-details">${p.lessons} alkalom<br>${p.validDays||30} napig érvényes<br><span style="color:var(--muted);font-size:11px;">${fmt(Math.round(p.price/p.lessons))} / óra</span></div><button class="btn btn-primary btn-w" style="margin-top:14px;" onclick="buyPass('${p.id}')">Megveszem</button>`;
     grid.appendChild(card);
   });
 }
@@ -1131,11 +1154,15 @@ window.submitReview=async btn=>{
 // ── PROFILE ──
 window.saveProfile=async()=>{
   const name=document.getElementById('prof-name-inp').value.trim();
+  const ageGroup=document.getElementById('prof-age-inp').value;
   await updateProfile(auth.currentUser,{displayName:name});
-  await updateDoc(doc(db,"mgiUsers",me.uid),{name});
-  meData.name=name;delete userCache[me.uid];
+  await updateDoc(doc(db,"mgiUsers",me.uid),{name,ageGroup});
+  meData.name=name;meData.ageGroup=ageGroup;delete userCache[me.uid];
   document.getElementById('prof-name-disp').innerText=name;
   document.getElementById('header-name').innerText=name.split(' ')[0];
+  const ageLabel=ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior (kedvezményes)</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
+  const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
+  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[meData.role||'user']||'Tanuló'}</span>${ageLabel}`;
   document.getElementById('prof-msg').innerText='✅ Mentve!';
   setTimeout(()=>document.getElementById('prof-msg').innerText='',2500);
 };
@@ -1208,7 +1235,8 @@ async function loadAdminPasses(){
   snap.forEach(d=>{
     const p={id:d.id,...d.data()};
     const div=document.createElement('div');div.className='card';div.style.marginBottom='10px';
-    div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div><strong>${esc(p.name)}</strong> &nbsp;<span class="badge badge-orange">${fmt(p.price)}</span> &nbsp;<span style="color:var(--muted);font-size:12px;">${p.lessons} alkalom · ${p.validDays||30} nap</span></div><button class="btn btn-danger btn-sm" onclick="deletePassType('${p.id}')">Töröl</button></div>`;
+    const ageTxt=p.ageGroup==='junior'?'🎓 Junior':(p.ageGroup==='adult'?'👤 Felnőtt':'👥 Mindenki');
+    div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div><strong>${esc(p.name)}</strong> &nbsp;<span class="badge badge-orange">${fmt(p.price)}</span> &nbsp;<span style="color:var(--muted);font-size:12px;">${p.lessons} alkalom · ${p.validDays||30} nap · ${ageTxt}</span></div><button class="btn btn-danger btn-sm" onclick="deletePassType('${p.id}')">Töröl</button></div>`;
     list.appendChild(div);
   });
 }
@@ -1221,7 +1249,14 @@ window.openAddPass=()=>{
       <div class="form-group"><label class="lbl">Alkalmak száma</label><input class="inp" type="number" id="np-lessons" placeholder="10"></div>
     </div>
     <div class="form-group"><label class="lbl">Érvényesség (nap)</label><input class="inp" type="number" id="np-days" placeholder="90"></div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:14px;"><input type="checkbox" id="np-featured"> Kiemelt (legjobb érték)</label>
+    <div class="form-group"><label class="lbl">Korcsoport</label>
+      <select class="inp" id="np-age" style="margin-bottom:0;">
+        <option value="all">Mindenkinek</option>
+        <option value="adult">Csak 18 év felettiek</option>
+        <option value="junior">Csak 18 év alattiak (kedvezményes)</option>
+      </select>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:10px 0 14px;"><input type="checkbox" id="np-featured"> Kiemelt (legjobb érték)</label>
     <button class="btn btn-primary btn-w" onclick="savePassType(this)">Mentés</button>
     <p class="err" id="np-err"></p></div>`;
   document.body.appendChild(el);
@@ -1234,7 +1269,8 @@ window.savePassType=async btn=>{
   const featured=document.getElementById('np-featured').checked;
   if(!name||!price||!lessons){document.getElementById('np-err').innerText='Töltsd ki a mezőket!';return;}
   btn.disabled=true;
-  await addDoc(collection(db,"mgiPassTypes"),{name,price,lessons,validDays,featured,createdAt:serverTimestamp()});
+  const ageGroup=document.getElementById('np-age').value;
+  await addDoc(collection(db,"mgiPassTypes"),{name,price,lessons,validDays,featured,ageGroup,createdAt:serverTimestamp()});
   btn.closest('.overlay').remove();toast('✅ Bérlet típus hozzáadva!');loadPasses();loadAdminPasses();
 };
 window.deletePassType=async pid=>{
@@ -1292,7 +1328,8 @@ async function loadAdminUsers(){
       getDocs(query(collection(db,"mgiBookings"),where("uid","==",d.id)))
     ]);
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><strong>${esc(u.name||'?')}</strong></td><td style="color:var(--muted);">${esc(u.email||'')}</td><td><span class="badge badge-${u.role==='admin'?'orange':u.role==='coach'?'blue':'green'}">${u.role||'user'}</span></td><td>${psnap.size>0?'<span class="badge badge-green">Aktív</span>':'<span class="badge badge-red">Nincs</span>'}</td><td>${bsnap.size}</td><td><select style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;" onchange="setUserRole('${d.id}',this.value)"><option value="user" ${(u.role||'user')==='user'?'selected':''}>Tanuló</option><option value="coach" ${u.role==='coach'?'selected':''}>Edző</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>`;
+    const ageDisp=u.ageGroup==='junior'?'<span class="badge badge-blue">🎓 Junior</span>':'<span class="badge badge-green">👤 Felnőtt</span>';
+    tr.innerHTML=`<td><strong>${esc(u.name||'?')}</strong></td><td style="color:var(--muted);">${esc(u.email||'')}</td><td><span class="badge badge-${u.role==='admin'?'orange':u.role==='coach'?'blue':'green'}">${u.role||'user'}</span> ${ageDisp}</td><td>${psnap.size>0?'<span class="badge badge-green">Aktív</span>':'<span class="badge badge-red">Nincs</span>'}</td><td>${bsnap.size}</td><td><select style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;" onchange="setUserRole('${d.id}',this.value)"><option value="user" ${(u.role||'user')==='user'?'selected':''}>Tanuló</option><option value="coach" ${u.role==='coach'?'selected':''}>Edző</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>`;
     tbody.appendChild(tr);
   }
 }
