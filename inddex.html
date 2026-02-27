@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGI – Marci Gitár Iskolája</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --card: #16161f;
+  --card2: #1c1c28;
+  --border: #252535;
+  --border2: #2e2e45;
+  --primary: #f97316;
+  --primary-dark: #c2500a;
+  --pglow: rgba(249,115,22,.12);
+  --pglow2: rgba(249,115,22,.06);
+  --accent: #facc15;
+  --accent2: #4ade80;
+  --blue: #60a5fa;
+  --danger: #f87171;
+  --text: #e8e8f0;
+  --muted: #6b6b8a;
+  --muted2: #4a4a68;
+  --string1: #f97316;
+  --string2: #facc15;
+  --string3: #4ade80;
+  --string4: #60a5fa;
+  --string5: #c084fc;
+  --string6: #f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* GRAIN OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:.4;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* GUITAR STRING LINES */
+.string-lines{position:fixed;top:0;left:0;right:0;height:3px;display:flex;z-index:100;pointer-events:none;}
+.string-lines span{flex:1;height:100%;}
+.string-lines span:nth-child(1){background:var(--string1);}
+.string-lines span:nth-child(2){background:var(--string2);}
+.string-lines span:nth-child(3){background:var(--string3);}
+.string-lines span:nth-child(4){background:var(--string4);}
+.string-lines span:nth-child(5){background:var(--string5);}
+.string-lines span:nth-child(6){background:var(--string6);}
+
+/* OVERLAYS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+.overlay.hidden{display:none!important;}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:2rem;width:min(500px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:popIn .3s cubic-bezier(.175,.885,.32,1.275);}
+.modal.wide{width:min(660px,100%);}
+@keyframes popIn{from{opacity:0;transform:scale(.93) translateY(12px)}to{opacity:1;transform:none}}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.05em;color:var(--primary);margin-bottom:1.2rem;}
+.modal-close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1;margin-top:-4px;transition:.15s;}.modal-close:hover{color:var(--text);}
+
+/* INPUTS */
+.inp{width:100%;padding:11px 14px;background:var(--card2);color:var(--text);border:1px solid var(--border2);border-radius:10px;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:10px;}
+.inp:focus{border-color:var(--primary);}
+textarea.inp{resize:vertical;min-height:80px;}
+select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+select.inp option{background:var(--card);}
+label.lbl{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.form-group{margin-bottom:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap;letter-spacing:.02em;}
+.btn-w{width:100%;}
+.btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text);}.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+.btn-ghost{background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;padding:6px 10px;border-radius:8px;transition:.15s;}.btn-ghost:hover{color:var(--text);}
+.btn-accent{background:var(--accent);color:#000;font-weight:700;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:12px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.err{color:var(--danger);font-size:13px;margin-top:4px;min-height:18px;}
+.suc{color:var(--accent2);font-size:13px;margin-top:4px;font-weight:600;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em;}
+.badge-orange{background:var(--pglow);color:var(--primary);border:1px solid rgba(249,115,22,.25);}
+.badge-green{background:rgba(74,222,128,.1);color:var(--accent2);border:1px solid rgba(74,222,128,.25);}
+.badge-yellow{background:rgba(250,204,21,.1);color:var(--accent);border:1px solid rgba(250,204,21,.25);}
+.badge-red{background:rgba(248,113,113,.1);color:var(--danger);border:1px solid rgba(248,113,113,.25);}
+.badge-blue{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.25);}
+
+/* HEADER */
+header{height:60px;border-bottom:1px solid var(--border);background:rgba(10,10,15,.95);backdrop-filter:blur(12px);position:sticky;top:3px;z-index:200;display:flex;align-items:center;padding:0 28px;gap:16px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.1em;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;flex-shrink:0;}
+.logo-sub{font-size:10px;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:500;letter-spacing:.15em;text-transform:uppercase;margin-left:2px;-webkit-text-fill-color:var(--muted);}
+.header-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.icon-btn{background:none;border:none;cursor:pointer;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;transition:.15s;position:relative;color:var(--muted);}
+.icon-btn:hover{background:var(--card2);color:var(--text);}
+.notif-dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--primary);}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:5px 12px 5px 5px;cursor:pointer;transition:.15s;}
+.user-chip:hover{border-color:var(--primary);}
+.user-av{width:28px;height:28px;border-radius:8px;object-fit:cover;}
+.user-name{font-size:13px;font-weight:600;}
+
+/* NAV */
+nav.sidenav{width:210px;padding:16px 10px;border-right:1px solid var(--border);position:sticky;top:63px;height:calc(100vh - 63px);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;width:100%;text-align:left;font-family:'Outfit',sans-serif;transition:.15s;}
+.nav-item:hover{background:var(--card2);color:var(--text);}
+.nav-item.active{background:var(--pglow);color:var(--primary);border:1px solid rgba(249,115,22,.15);}
+.nav-item .ni{font-size:16px;width:22px;text-align:center;}
+.nav-sep{height:1px;background:var(--border);margin:8px 4px;}
+.nav-label{font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 4px;}
+
+/* LAYOUT */
+.app{display:flex;min-height:calc(100vh - 63px);}
+.main-content{flex:1;padding:28px 24px;max-width:900px;margin:0 auto;}
+.page{display:none;}.page.active{display:block;}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.06em;color:var(--text);margin-bottom:4px;}
+.page-sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.card-glow{border-color:rgba(249,115,22,.3);box-shadow:0 0 24px rgba(249,115,22,.08);}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f0f1a 0%,#1a0f0a 50%,#0f0a00 100%);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;margin-bottom:32px;position:relative;overflow:hidden;}
+.hero::before{content:'𝄞';position:absolute;right:40px;top:20px;font-size:160px;opacity:.04;line-height:1;pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-60px;right:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,.08) 0%,transparent 70%);pointer-events:none;}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;letter-spacing:.08em;line-height:1;margin-bottom:8px;background:linear-gradient(135deg,#fff 40%,var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:28px;max-width:500px;line-height:1.7;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.guitar-strings{position:absolute;left:0;right:0;bottom:0;height:4px;display:flex;}
+.guitar-strings span{flex:1;height:100%;opacity:.6;}
+.guitar-strings span:nth-child(1){background:var(--string1);}
+.guitar-strings span:nth-child(2){background:var(--string2);}
+.guitar-strings span:nth-child(3){background:var(--string3);}
+.guitar-strings span:nth-child(4){background:var(--string4);}
+.guitar-strings span:nth-child(5){background:var(--string5);}
+.guitar-strings span:nth-child(6){background:var(--string6);}
+
+/* SERVICE CARDS */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:32px;}
+.service-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;}
+.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));}
+.service-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 32px rgba(249,115,22,.15);}
+.service-icon{font-size:2rem;margin-bottom:10px;}
+.service-name{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;margin-bottom:4px;}
+.service-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;}
+.service-price{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--primary);}
+.service-duration{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* CALENDAR */
+.calendar-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.cal-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.06em;}
+.cal-nav{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 10px;border-radius:8px;transition:.15s;}.cal-nav:hover{background:var(--card2);color:var(--text);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+.cal-day-header{padding:10px 0;text-align:center;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);}
+.cal-day{padding:8px 4px;text-align:center;cursor:pointer;font-size:14px;border-radius:8px;margin:2px;transition:.15s;position:relative;}
+.cal-day:hover:not(.empty):not(.past){background:var(--card2);}
+.cal-day.today{color:var(--primary);font-weight:700;}
+.cal-day.selected{background:var(--primary);color:#fff!important;font-weight:700;}
+.cal-day.past{color:var(--muted2);cursor:not-allowed;}
+.cal-day.empty{cursor:default;}
+.cal-day.has-slots::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent2);}
+.cal-day.full::after{background:var(--danger);}
+.time-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;padding:16px 20px;border-top:1px solid var(--border);}
+.time-slot{padding:9px;text-align:center;border-radius:8px;border:1px solid var(--border2);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;background:var(--card2);}
+.time-slot:hover{border-color:var(--primary);color:var(--primary);}
+.time-slot.selected{background:var(--primary);border-color:var(--primary);color:#fff;}
+.time-slot.booked{background:var(--card);border-color:var(--border);color:var(--muted2);cursor:not-allowed;text-decoration:line-through;}
+
+/* PASS CARDS */
+.pass-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+.pass-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;transition:.2s;text-align:center;position:relative;}
+.pass-card:hover{border-color:var(--primary);transform:translateY(-3px);}
+.pass-card.featured{border-color:var(--accent);box-shadow:0 0 30px rgba(250,204,21,.1);}
+.pass-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-size:10px;font-weight:800;padding:3px 12px;border-radius:20px;white-space:nowrap;}
+.pass-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.05em;margin-bottom:4px;}
+.pass-price{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--primary);margin:8px 0;}
+.pass-details{font-size:12px;color:var(--muted);line-height:2;}
+
+/* ACTIVE PASS */
+.active-pass{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(250,204,21,.04));border:1px solid rgba(249,115,22,.25);border-radius:14px;padding:20px;margin-bottom:20px;}
+.pass-progress{background:var(--border);border-radius:4px;height:6px;margin:10px 0;}
+.pass-progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .5s ease;}
+
+/* BOOKING LIST */
+.booking-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:.15s;}
+.booking-item:hover{border-color:var(--border2);}
+.booking-date-box{background:var(--card2);border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;min-width:52px;}
+.booking-day{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;line-height:1;color:var(--primary);}
+.booking-month{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.booking-info{flex:1;}
+.booking-time{font-size:13px;font-weight:600;}
+.booking-service{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* MESSAGES */
+.msg-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 140px);background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.msg-sidebar{border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.msg-sidebar-hdr{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.msg-sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.06em;}
+.msg-conv-list{flex:1;overflow-y:auto;}
+.msg-conv-item{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid rgba(37,37,53,.5);transition:.15s;}
+.msg-conv-item:hover{background:var(--card2);}
+.msg-conv-item.active{background:var(--pglow);}
+.msg-conv-av{width:36px;height:36px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;object-fit:cover;}
+.msg-conv-name{font-size:13px;font-weight:600;}
+.msg-conv-preview{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+.msg-unread{background:var(--primary);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.msg-main{display:flex;flex-direction:column;}
+.msg-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.msg-hdr-av{width:34px;height:34px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;object-fit:cover;}
+.msg-hdr-name{font-weight:700;font-size:14px;}
+.msg-hdr-role{font-size:11px;color:var(--muted);}
+.msg-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.msg-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);flex-direction:column;gap:8px;font-size:14px;}
+.msg-bubble-wrap{display:flex;gap:8px;max-width:75%;}
+.msg-bubble-wrap.mine{align-self:flex-end;flex-direction:row-reverse;}
+.msg-av-sm{width:28px;height:28px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;object-fit:cover;}
+.msg-bubble{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.5;}
+.msg-bubble-wrap.mine .msg-bubble{background:var(--pglow);border-color:rgba(249,115,22,.25);}
+.msg-time{font-size:10px;color:var(--muted);margin-top:3px;}
+.msg-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.msg-quota{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.msg-quota span{color:var(--primary);font-weight:700;}
+.msg-input-row{display:flex;gap:8px;align-items:flex-end;}
+.msg-input-row textarea{flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--text);outline:none;font-family:'Outfit',sans-serif;resize:none;max-height:80px;transition:border-color .2s;}
+.msg-input-row textarea:focus{border-color:var(--primary);}
+.msg-send{background:var(--primary);border:none;border-radius:10px;width:40px;height:40px;cursor:pointer;color:#fff;font-size:16px;flex-shrink:0;transition:.2s;}.msg-send:hover{background:var(--primary-dark);}
+.msg-no-conv{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);}
+.new-msg-btn{background:var(--primary);border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s;}.new-msg-btn:hover{background:var(--primary-dark);}
+
+/* REVIEWS */
+.review-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.review-stars{color:var(--accent);font-size:15px;margin-bottom:6px;}
+.review-text{font-size:14px;line-height:1.6;margin-bottom:8px;}
+.review-author{font-size:12px;color:var(--muted);}
+
+/* ADMIN TABLE */
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);font-weight:700;}
+td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+
+/* ADMIN NAV */
+.admin-wrap{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:start;}
+.admin-nav{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;position:sticky;top:80px;}
+.admin-nav-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;width:100%;font-family:'Outfit',sans-serif;transition:.15s;}
+.admin-nav-item:hover{background:var(--card2);color:var(--text);}
+.admin-nav-item.active{background:var(--pglow);color:var(--primary);}
+.admin-panel{display:none;}.admin-panel.active{display:block;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--primary);letter-spacing:.05em;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:99999;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:slideUp .3s ease;max-width:300px;border-left:3px solid var(--primary);}
+.toast.hidden{display:none!important;}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.hidden{display:none!important;}
+.spin{animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  nav.sidenav{width:56px;}
+  .nav-item span:not(.ni){display:none;}
+  .nav-label,.nav-sep{display:none;}
+}
+@media(max-width:640px){
+  nav.sidenav{display:none;}
+  .main-content{padding:16px 12px;}
+  .hero{padding:28px 20px;}.hero h1{font-size:2rem;}
+  .msg-layout{grid-template-columns:1fr;}
+  .msg-sidebar{display:none;}
+  .admin-wrap{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="string-lines"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+<!-- AUTH MODAL -->
+<div id="auth-overlay" class="overlay">
+  <div class="modal">
+    <div class="modal-title">🎸 MGI</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Marci Gitár Iskolája – Lépj be a közösségbe!</p>
+    <div style="display:flex;gap:4px;background:var(--card2);border-radius:10px;padding:4px;margin-bottom:1.2rem;">
+      <button id="tab-l-btn" class="btn btn-primary btn-sm" style="flex:1;border-radius:7px;" onclick="switchTab('login')">Belépés</button>
+      <button id="tab-r-btn" class="btn btn-ghost btn-sm" style="flex:1;" onclick="switchTab('register')">Regisztráció</button>
+    </div>
+    <div id="tab-login">
+      <div class="form-group"><label class="lbl">E-mail</label><input class="inp" type="email" id="login-email" placeholder="te@email.com"></div>
+      <div class="form-group"><label class="lbl">Jelszó</label><input class="inp" type="password" id="login-pass" placeholder="••••••"></div>
+      <button class="btn btn-primary btn-w" onclick="doLogin()">Belépés</button>
+      <div class="divider">vagy</div>
+      <button class="btn btn-outline btn-w" onclick="doGoogle()">🔵 Google</button>
+    </div>
+    <div id="tab-register" class="hidden">
+      <div class="form-group"><label class="lbl">Teljes név</label><input class="inp" type="text" id="reg-name" placeholder="Kovács Péter"></div>
+      <div class="form-group"><label class="lbl">E-mail</label><input class="inp" type="email" id="reg-email" placeholder="te@email.com"></div>
+      <div class="form-group"><label class="lbl">Jelszó</label><input class="inp" type="password" id="reg-pass" placeholder="min. 6 karakter"></div>
+      <button class="btn btn-primary btn-w" style="margin-top:4px;" onclick="doRegister()">Regisztráció</button>
+      <div class="divider">vagy</div>
+      <button class="btn btn-outline btn-w" onclick="doGoogle()">🔵 Google</button>
+    </div>
+    <p class="err" id="auth-err" style="min-height:18px;margin-top:8px;"></p>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div id="booking-overlay" class="overlay hidden">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBooking()">✕</button>
+    <div class="modal-title">Időpont foglalás</div>
+    <div id="booking-service-info" style="background:var(--card2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;"></div>
+    <div class="form-group"><label class="lbl">Kiválasztott időpont</label>
+      <div id="booking-datetime" style="background:var(--card2);border-radius:10px;padding:12px;font-weight:600;color:var(--primary);font-size:14px;"></div>
+    </div>
+    <div id="booking-pass-info" style="margin-bottom:12px;"></div>
+    <div class="form-group"><label class="lbl">Megjegyzés (opcionális)</label><textarea class="inp" id="booking-note" rows="2" placeholder="Különleges kérés..."></textarea></div>
+    <button class="btn btn-primary btn-w" onclick="confirmBooking()">✅ Foglalás megerősítése</button>
+    <p class="err" id="booking-err"></p>
+    <p class="suc" id="booking-suc"></p>
+  </div>
+</div>
+
+<!-- NEW MESSAGE MODAL -->
+<div id="newmsg-overlay" class="overlay hidden">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('newmsg-overlay').classList.add('hidden')">✕</button>
+    <div class="modal-title">Új üzenet</div>
+    <div id="newmsg-quota-info" style="margin-bottom:12px;"></div>
+    <div id="newmsg-user-select" style="margin-bottom:12px;"></div>
+    <div class="form-group"><label class="lbl">Üzenet</label><textarea class="inp" id="newmsg-text" rows="4" placeholder="Írd ide az üzeneted..."></textarea></div>
+    <button class="btn btn-primary btn-w" onclick="sendNewMessage()">📤 Küldés</button>
+    <p class="err" id="newmsg-err"></p>
+  </div>
+</div>
+
+<!-- ADMIN ADD SERVICE MODAL -->
+<div id="addservice-overlay" class="overlay hidden">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('addservice-overlay').classList.add('hidden')">✕</button>
+    <div class="modal-title" id="addservice-title">Új szolgáltatás</div>
+    <div class="form-group"><label class="lbl">Neve *</label><input class="inp" type="text" id="as-name" placeholder="pl. Kezdő gitáróra"></div>
+    <div class="form-group"><label class="lbl">Leírás</label><textarea class="inp" id="as-desc" rows="2" placeholder="Rövid leírás..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="lbl">Ár (Ft) *</label><input class="inp" type="number" id="as-price" placeholder="5000"></div>
+      <div class="form-group"><label class="lbl">Időtartam (perc)</label><input class="inp" type="number" id="as-duration" placeholder="60"></div>
+    </div>
+    <div class="form-group"><label class="lbl">Emoji</label><input class="inp" type="text" id="as-emoji" placeholder="🎸" maxlength="2" value="🎸"></div>
+    <button class="btn btn-primary btn-w" onclick="saveService()">💾 Mentés</button>
+    <p class="suc" id="as-msg"></p><p class="err" id="as-err"></p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo" onclick="showPage('home')">MGI <span class="logo-sub">Gitár Iskola</span></div>
+  <div class="header-right" id="header-right" style="display:none;">
+    <button class="icon-btn" id="msg-icon-btn" onclick="showPage('messages')" title="Üzenetek">💬<span class="notif-dot hidden" id="msg-notif"></span></button>
+    <div class="user-chip" onclick="showPage('profile')">
+      <img class="user-av" id="header-av" src="" alt="">
+      <span class="user-name" id="header-name"></span>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+<!-- SIDENAV -->
+<nav class="sidenav" id="sidenav" style="display:none;">
+  <button class="nav-item active" id="nav-home" onclick="showPage('home')"><span class="ni">🏠</span><span>Főoldal</span></button>
+  <button class="nav-item" id="nav-services" onclick="showPage('services')"><span class="ni">🎸</span><span>Szolgáltatások</span></button>
+  <button class="nav-item" id="nav-booking" onclick="showPage('booking')"><span class="ni">📅</span><span>Foglalás</span></button>
+  <button class="nav-item" id="nav-passes" onclick="showPage('passes')"><span class="ni">🎫</span><span>Bérletek</span></button>
+  <div class="nav-sep"></div>
+  <button class="nav-item" id="nav-my-bookings" onclick="showPage('my-bookings')"><span class="ni">📋</span><span>Foglalásaim</span></button>
+  <button class="nav-item" id="nav-messages" onclick="showPage('messages')"><span class="ni">💬</span><span>Üzenetek</span></button>
+  <button class="nav-item" id="nav-reviews" onclick="showPage('reviews')"><span class="ni">⭐</span><span>Vélemények</span></button>
+  <button class="nav-item" id="nav-profile" onclick="showPage('profile')"><span class="ni">👤</span><span>Profil</span></button>
+  <div class="nav-sep"></div>
+  <div class="nav-label">Admin</div>
+  <button class="nav-item hidden" id="nav-admin" onclick="showPage('admin')"><span class="ni">⚙️</span><span>Admin</span></button>
+</nav>
+
+<!-- MAIN -->
+<div class="main-content">
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div class="hero">
+      <h1>Tanulj gitározni<br>profi szinten</h1>
+      <p>Egyéni gitáróra kezdőktől haladókig. Foglalj időpontot, vegyél bérletet, és legyél részese a közösségnek!</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary" onclick="showPage('booking')">📅 Időpontot foglalok</button>
+        <button class="btn btn-outline" onclick="showPage('services')">🎸 Szolgáltatások</button>
+      </div>
+      <div class="guitar-strings"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;" id="home-stats">
+      <div class="card" style="text-align:center;padding:16px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--primary);" id="hs-bookings">–</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Foglalás</div>
+      </div>
+      <div class="card" style="text-align:center;padding:16px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);" id="hs-passes">–</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Aktív bérlet</div>
+      </div>
+      <div class="card" style="text-align:center;padding:16px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent2);" id="hs-reviews">–</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Értékelés</div>
+      </div>
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.06em;margin-bottom:12px;">🎸 Szolgáltatások</div>
+    <div id="home-services" class="services-grid"></div>
+  </div>
+
+  <!-- SERVICES -->
+  <div id="page-services" class="page">
+    <div class="page-title">Szolgáltatások</div>
+    <p class="page-sub">Válassz az elérhető gitáróra típusok közül</p>
+    <div id="services-grid" class="services-grid"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;" id="add-service-btn-wrap" style="display:none!important;">
+      <button class="btn btn-outline btn-sm" onclick="openAddService()">+ Új szolgáltatás</button>
+    </div>
+  </div>
+
+  <!-- BOOKING -->
+  <div id="page-booking" class="page">
+    <div class="page-title">Időpontfoglalás</div>
+    <p class="page-sub">Válassz szolgáltatást, majd időpontot</p>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label class="lbl">Szolgáltatás</label>
+      <select class="inp" id="book-service-sel" onchange="onServiceSelect()" style="margin-bottom:0;"></select>
+    </div>
+    <div class="calendar-wrap">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="prevMonth()">‹</button>
+        <div class="cal-title" id="cal-month-title"></div>
+        <button class="cal-nav" onclick="nextMonth()">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="time-slots-wrap" style="display:none;">
+        <div style="padding:12px 20px 0;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Elérhető időpontok – <span id="selected-date-label"></span></div>
+        <div class="time-slots" id="time-slots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSES -->
+  <div id="page-passes" class="page">
+    <div class="page-title">Bérletek</div>
+    <p class="page-sub">Vásárolj bérletet és spórolj az órákon</p>
+    <div id="active-pass-wrap"></div>
+    <div class="pass-grid" id="pass-grid"></div>
+  </div>
+
+  <!-- MY BOOKINGS -->
+  <div id="page-my-bookings" class="page">
+    <div class="page-title">Foglalásaim</div>
+    <p class="page-sub">Közelgő és korábbi foglalásaid</p>
+    <div id="my-bookings-list"></div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div id="page-messages" class="page">
+    <div class="msg-layout">
+      <div class="msg-sidebar">
+        <div class="msg-sidebar-hdr">
+          <div class="msg-sidebar-title">Üzenetek</div>
+          <button class="new-msg-btn" onclick="openNewMsg()" title="Új üzenet">+</button>
+        </div>
+        <div class="msg-conv-list" id="msg-conv-list"></div>
+      </div>
+      <div id="msg-main-area" class="msg-main">
+        <div class="msg-no-conv"><div style="font-size:2rem;">💬</div><div>Válassz egy beszélgetést</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div id="page-reviews" class="page">
+    <div class="page-title">Vélemények</div>
+    <p class="page-sub">Mit mondanak a tanulók</p>
+    <button class="btn btn-primary btn-sm" style="margin-bottom:20px;" onclick="openReviewForm()">+ Értékelés írása</button>
+    <div id="reviews-list"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="page-profile" class="page">
+    <div class="page-title">Profil</div>
+    <div class="card" style="max-width:440px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+        <img id="prof-av" style="width:56px;height:56px;border-radius:12px;border:1px solid var(--border2);object-fit:cover;" src="" alt="">
+        <div>
+          <div id="prof-name-disp" style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;"></div>
+          <div id="prof-email-disp" style="font-size:12px;color:var(--muted);"></div>
+          <div id="prof-role-disp" style="margin-top:4px;"></div>
+        </div>
+      </div>
+      <div class="form-group"><label class="lbl">Teljes név</label><input class="inp" type="text" id="prof-name-inp" placeholder="Neved"></div>
+      <button class="btn btn-primary btn-sm" onclick="saveProfile()">Mentés</button>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="margin-left:8px;">Kilépés</button>
+      <p class="suc" id="prof-msg"></p>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="page-admin" class="page">
+    <div class="page-title">Admin Panel</div>
+    <div class="admin-wrap">
+      <div class="admin-nav">
+        <button class="admin-nav-item active" onclick="switchAdmin('dashboard',this)">📊 Áttekintés</button>
+        <button class="admin-nav-item" onclick="switchAdmin('bookings-admin',this)">📅 Foglalások</button>
+        <button class="admin-nav-item" onclick="switchAdmin('passes-admin',this)">🎫 Bérletek</button>
+        <button class="admin-nav-item" onclick="switchAdmin('services-admin',this)">🎸 Szolgáltatások</button>
+        <button class="admin-nav-item" onclick="switchAdmin('timeslots-admin',this)">⏰ Időpontok</button>
+        <button class="admin-nav-item" onclick="switchAdmin('users-admin',this)">👥 Tanulók</button>
+      </div>
+      <div>
+        <div id="admin-dashboard" class="admin-panel active">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;" id="admin-stats"></div>
+        </div>
+        <div id="admin-bookings-admin" class="admin-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;">Összes foglalás</div>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden;">
+            <table><thead><tr><th>Tanuló</th><th>Szolgáltatás</th><th>Dátum</th><th>Idő</th><th>Státusz</th><th>Művelet</th></tr></thead>
+            <tbody id="admin-bookings-tbody"></tbody></table>
+          </div>
+        </div>
+        <div id="admin-passes-admin" class="admin-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;">Bérletek kezelése</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddPass()">+ Új bérlet típus</button>
+          </div>
+          <div id="admin-passes-list"></div>
+        </div>
+        <div id="admin-services-admin" class="admin-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;">Szolgáltatások</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddService()">+ Új</button>
+          </div>
+          <div id="admin-services-list"></div>
+        </div>
+        <div id="admin-timeslots-admin" class="admin-panel">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;margin-bottom:14px;">Elérhető időpontok hozzáadása</div>
+          <div class="card" style="max-width:440px;">
+            <div class="form-group"><label class="lbl">Dátum</label><input class="inp" type="date" id="ts-date" style="margin-bottom:0;"></div>
+            <div class="form-group" style="margin-top:10px;"><label class="lbl">Időpontok (vesszővel elválasztva)</label><input class="inp" type="text" id="ts-times" placeholder="09:00, 10:00, 11:00, 14:00" style="margin-bottom:0;"></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="addTimeSlots()">Hozzáadás</button>
+            <p class="suc" id="ts-msg"></p>
+          </div>
+          <div style="margin-top:16px;" id="timeslots-admin-list"></div>
+        </div>
+        <div id="admin-users-admin" class="admin-panel">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;margin-bottom:14px;">Tanulók</div>
+          <div class="card" style="padding:0;overflow:hidden;">
+            <table><thead><tr><th>Név</th><th>E-mail</th><th>Rang</th><th>Bérlet</th><th>Foglalások</th><th>Művelet</th></tr></thead>
+            <tbody id="admin-users-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+</div><!-- /app -->
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,createUserWithEmailAndPassword,signInWithEmailAndPassword,onAuthStateChanged,updateProfile,signOut}from"https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,addDoc,getDocs,deleteDoc,collection,query,orderBy,where,onSnapshot,increment,serverTimestamp,Timestamp}from"https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+emailjs.init("4LFBpydgzoEkimQLz");
+const EJS_SVC="marcigitariskolaja";
+const EJS_PASS_EXPIRED="berletnuku";
+const EJS_MSG="ujuzenet";
+
+const firebaseConfig={
+  apiKey:"AIzaSyA2kwQna7aDhAl2Q5I7BcYDleiL3fxRQw8",
+  authDomain:"marcigitariskolaja.firebaseapp.com",
+  projectId:"marcigitariskolaja",
+  storageBucket:"marcigitariskolaja.firebasestorage.app",
+  messagingSenderId:"308131911982",
+  appId:"1:308131911982:web:a7daf6ca2185e7c65c42bf"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const gp=new GoogleAuthProvider();
+
+// ── STATE ──
+let me=null,meData={},isAdmin=false,isCoach=false,uiReady=false;
+let services=[],passes=[],allBookings=[],allSlots={};
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+let selectedDate=null,selectedTime=null,selectedServiceId=null;
+let activeConvId=null,convUnsub=null,msgUnsub=null;
+const userCache={};
+
+// ── UTILS ──
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmt(n){return Number(n).toLocaleString('hu-HU')+' Ft';}
+function timeAgo(ts){if(!ts)return'';const d=ts.toDate?ts.toDate():new Date(ts);const s=Math.floor((Date.now()-d)/1000);if(s<60)return'most';if(s<3600)return Math.floor(s/60)+' perce';if(s<86400)return Math.floor(s/3600)+' órája';return Math.floor(s/86400)+' napja';}
+function toast(msg,dur=3000){const t=document.getElementById('toast');t.innerText=msg;t.classList.remove('hidden');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),dur);}
+function dateStr(y,m,d){return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function friendlyDate(ds){const d=new Date(ds+'T00:00:00');return d.toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'});}
+
+async function getCachedUser(uid){
+  if(userCache[uid])return userCache[uid];
+  const s=await getDoc(doc(db,"mgiUsers",uid));
+  const av=s.exists()&&s.data().photoURL?s.data().photoURL:`https://api.dicebear.com/7.x/pixel-art/svg?seed=${uid}`;
+  userCache[uid]={name:s.exists()?(s.data().name||'?'):'?',avatar:av,role:s.exists()?s.data().role:'user',...(s.exists()?s.data():{})};
+  return userCache[uid];
+}
+
+// ── AUTH ──
+window.switchTab=t=>{
+  document.getElementById('tab-login').classList.toggle('hidden',t!=='login');
+  document.getElementById('tab-register').classList.toggle('hidden',t!=='register');
+  const lb=document.getElementById('tab-l-btn'),rb=document.getElementById('tab-r-btn');
+  if(t==='login'){lb.className='btn btn-primary btn-sm';lb.style.flex='1';lb.style.borderRadius='7px';rb.className='btn btn-ghost btn-sm';rb.style.flex='1';}
+  else{rb.className='btn btn-primary btn-sm';rb.style.flex='1';rb.style.borderRadius='7px';lb.className='btn btn-ghost btn-sm';lb.style.flex='1';}
+  document.getElementById('auth-err').innerText='';
+};
+
+async function setupUI(user,ud){
+  uiReady=true;me=user;meData=ud;
+  isAdmin=ud.role==='admin';isCoach=ud.role==='coach'||ud.role==='admin';
+  document.getElementById('auth-overlay').classList.add('hidden');
+  document.getElementById('sidenav').style.display='';
+  document.getElementById('header-right').style.display='flex';
+  const av=user.photoURL||`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.uid}`;
+  document.getElementById('header-av').src=av;
+  document.getElementById('header-name').innerText=(ud.name||user.displayName||'').split(' ')[0];
+  document.getElementById('prof-av').src=av;
+  document.getElementById('prof-name-disp').innerText=ud.name||user.displayName||'?';
+  document.getElementById('prof-email-disp').innerText=user.email;
+  document.getElementById('prof-name-inp').value=ud.name||user.displayName||'';
+  const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
+  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[ud.role||'user']||'Tanuló'}</span>`;
+  if(isAdmin){document.getElementById('nav-admin').classList.remove('hidden');}
+  await Promise.all([loadServices(),loadPasses(),loadHomeStats()]);
+  renderCalendar();
+  listenConversations();
+  checkActivePasses();
+}
+
+window.doLogin=async()=>{
+  const e=document.getElementById('login-email').value.trim(),p=document.getElementById('login-pass').value;
+  if(!e||!p){document.getElementById('auth-err').innerText='Töltsd ki a mezőket!';return;}
+  try{await signInWithEmailAndPassword(auth,e,p);}catch(err){document.getElementById('auth-err').innerText=err.code==='auth/invalid-credential'?'Hibás e-mail vagy jelszó.':err.message;}
+};
+window.doRegister=async()=>{
+  const name=document.getElementById('reg-name').value.trim(),e=document.getElementById('reg-email').value.trim(),p=document.getElementById('reg-pass').value;
+  if(!name||!e||!p){document.getElementById('auth-err').innerText='Töltsd ki az összes mezőt!';return;}
+  if(p.length<6){document.getElementById('auth-err').innerText='A jelszó min. 6 karakter!';return;}
+  try{
+    const cr=await createUserWithEmailAndPassword(auth,e,p);
+    await updateProfile(cr.user,{displayName:name});
+    const ud={name,email:e,role:'user',createdAt:new Date().toISOString()};
+    await setDoc(doc(db,"mgiUsers",cr.user.uid),ud);
+    await setupUI(cr.user,ud);
+  }catch(err){document.getElementById('auth-err').innerText=err.code==='auth/email-already-in-use'?'Ez az e-mail már regisztrált.':err.message;}
+};
+window.doGoogle=async()=>{
+  try{
+    const cr=await signInWithPopup(auth,gp);
+    const ref=doc(db,"mgiUsers",cr.user.uid);
+    const s=await getDoc(ref);
+    if(!s.exists())await setDoc(ref,{name:cr.user.displayName||cr.user.email,email:cr.user.email,role:'user',createdAt:new Date().toISOString()});
+  }catch(err){document.getElementById('auth-err').innerText=err.message;}
+};
+window.doLogout=async()=>{await signOut(auth);location.reload();};
+onAuthStateChanged(auth,async user=>{
+  if(uiReady)return;
+  if(user){const s=await getDoc(doc(db,"mgiUsers",user.uid));const ud=s.exists()?s.data():{name:user.displayName||user.email,role:'user'};await setupUI(user,ud);}
+  else{document.getElementById('auth-overlay').classList.remove('hidden');}
+});
+
+// ── NAV ──
+window.showPage=page=>{
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const n=document.getElementById('nav-'+page);if(n)n.classList.add('active');
+  if(page==='my-bookings')loadMyBookings();
+  if(page==='reviews')loadReviews();
+  if(page==='passes')renderActivePasses();
+  if(page==='admin'){switchAdmin('dashboard',document.querySelector('.admin-nav-item'));loadAdminData();}
+  if(page==='services')renderServicesPage();
+  if(page==='messages')renderConvList();
+};
+
+// ── SERVICES ──
+async function loadServices(){
+  const snap=await getDocs(query(collection(db,"mgiServices"),orderBy("createdAt","asc")));
+  services=[];snap.forEach(d=>services.push({id:d.id,...d.data()}));
+  renderServicesHome();renderServicesPage();
+  const sel=document.getElementById('book-service-sel');
+  sel.innerHTML=services.map(s=>`<option value="${s.id}">${s.emoji||'🎸'} ${esc(s.name)} – ${fmt(s.price)}</option>`).join('');
+  if(services.length)selectedServiceId=services[0].id;
+}
+function renderServicesHome(){
+  const g=document.getElementById('home-services');if(!g)return;g.innerHTML='';
+  services.slice(0,4).forEach(s=>g.appendChild(makeServiceCard(s)));
+}
+function renderServicesPage(){
+  const g=document.getElementById('services-grid');if(!g)return;g.innerHTML='';
+  services.forEach(s=>g.appendChild(makeServiceCard(s)));
+  const wrap=document.getElementById('add-service-btn-wrap');
+  if(wrap)wrap.style.display=isAdmin?'flex':'none';
+}
+function makeServiceCard(s){
+  const card=document.createElement('div');card.className='service-card';
+  card.innerHTML=`<div class="service-icon">${s.emoji||'🎸'}</div><div class="service-name">${esc(s.name)}</div><div class="service-desc">${esc(s.description||'')}</div><div class="service-price">${fmt(s.price)}</div><div class="service-duration">⏱ ${s.duration||60} perc</div>`;
+  card.onclick=()=>{document.getElementById('book-service-sel').value=s.id;selectedServiceId=s.id;showPage('booking');};
+  return card;
+}
+window.openAddService=()=>{
+  window._editServiceId=null;
+  document.getElementById('addservice-title').innerText='Új szolgáltatás';
+  ['as-name','as-desc','as-price','as-duration','as-msg','as-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=el.tagName==='INPUT'||el.tagName==='TEXTAREA'?'':el.innerText='';});
+  document.getElementById('as-emoji').value='🎸';
+  document.getElementById('addservice-overlay').classList.remove('hidden');
+};
+window.saveService=async()=>{
+  const name=document.getElementById('as-name').value.trim();
+  const price=parseInt(document.getElementById('as-price').value);
+  if(!name||!price){document.getElementById('as-err').innerText='A név és ár kötelező!';return;}
+  const data={name,description:document.getElementById('as-desc').value.trim(),price,duration:parseInt(document.getElementById('as-duration').value)||60,emoji:document.getElementById('as-emoji').value||'🎸'};
+  if(!window._editServiceId){data.createdAt=serverTimestamp();await addDoc(collection(db,"mgiServices"),data);}
+  else await updateDoc(doc(db,"mgiServices",window._editServiceId),data);
+  document.getElementById('as-msg').innerText='✅ Mentve!';
+  await loadServices();loadAdminServices();
+  setTimeout(()=>document.getElementById('addservice-overlay').classList.add('hidden'),1000);
+};
+
+// ── CALENDAR ──
+window.prevMonth=()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
+window.nextMonth=()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();};
+
+async function loadSlotsForMonth(){
+  const y=calYear,m=calMonth;
+  const from=dateStr(y,m,1),to=dateStr(y,m,new Date(y,m+1,0).getDate());
+  const snap=await getDocs(query(collection(db,"mgiSlots"),where("date",">=",from),where("date","<=",to)));
+  allSlots={};
+  snap.forEach(d=>{const s=d.data();if(!allSlots[s.date])allSlots[s.date]=[];allSlots[s.date].push({id:d.id,...s});});
+}
+
+async function renderCalendar(){
+  await loadSlotsForMonth();
+  const months=['Január','Február','Március','Április','Május','Június','Július','Augusztus','Szeptember','Október','November','December'];
+  document.getElementById('cal-month-title').innerText=`${calYear}. ${months[calMonth]}`;
+  const grid=document.getElementById('cal-grid');
+  const days=['H','K','Sze','Cs','P','Szo','V'];
+  grid.innerHTML=days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+  const firstDay=(new Date(calYear,calMonth,1).getDay()+6)%7;
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<firstDay;i++)grid.innerHTML+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=dateStr(calYear,calMonth,d);
+    const isPast=new Date(ds)<new Date(today.toDateString());
+    const slots=allSlots[ds]||[];
+    const hasSlots=slots.some(s=>!s.booked);
+    const full=slots.length>0&&slots.every(s=>s.booked);
+    const isToday=ds===dateStr(today.getFullYear(),today.getMonth(),today.getDate());
+    const isSel=ds===selectedDate;
+    let cls='cal-day';
+    if(isPast)cls+=' past';else if(hasSlots)cls+=' has-slots';else if(full)cls+=' full';
+    if(isToday)cls+=' today';if(isSel)cls+=' selected';
+    const div=document.createElement('div');div.className=cls;div.innerText=d;
+    if(!isPast)div.onclick=()=>selectDate(ds);
+    grid.appendChild(div);
+  }
+  if(selectedDate)showTimeSlotsForDate(selectedDate);
+}
+
+window.selectDate=async ds=>{
+  selectedDate=ds;selectedTime=null;
+  document.getElementById('selected-date-label').innerText=friendlyDate(ds);
+  document.getElementById('time-slots-wrap').style.display='block';
+  await renderCalendar();
+  showTimeSlotsForDate(ds);
+};
+
+function showTimeSlotsForDate(ds){
+  const wrap=document.getElementById('time-slots');wrap.innerHTML='';
+  const slots=allSlots[ds]||[];
+  if(!slots.length){wrap.innerHTML='<div style="color:var(--muted);font-size:13px;grid-column:1/-1;">Erre a napra nincs meghirdetett időpont.</div>';return;}
+  slots.sort((a,b)=>a.time.localeCompare(b.time));
+  slots.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='time-slot'+(s.booked?' booked':'')+(selectedTime===s.time?' selected':'');
+    div.innerText=s.time;
+    if(!s.booked)div.onclick=()=>{selectedTime=s.time;document.querySelectorAll('.time-slot').forEach(t=>t.classList.remove('selected'));div.classList.add('selected');openBooking(s);};
+    wrap.appendChild(div);
+  });
+}
+
+// ── BOOKING ──
+window.openBooking=async slot=>{
+  const svc=services.find(s=>s.id===(document.getElementById('book-service-sel').value));
+  if(!svc)return;
+  document.getElementById('booking-service-info').innerHTML=`<strong>${svc.emoji||'🎸'} ${esc(svc.name)}</strong> &nbsp;·&nbsp; ${fmt(svc.price)} &nbsp;·&nbsp; ${svc.duration||60} perc`;
+  document.getElementById('booking-datetime').innerText=`${friendlyDate(selectedDate)} – ${slot.time}`;
+  // Check pass
+  const passInfo=document.getElementById('booking-pass-info');
+  const activePass=await getActivePass();
+  if(activePass){
+    passInfo.innerHTML=`<div class="badge badge-green">🎫 Bérletből levonva (${activePass.lessonsLeft} alkalom marad)</div>`;
+  }else{
+    passInfo.innerHTML=`<div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px;font-size:13px;color:var(--muted);">⚠️ Nincs aktív bérleted. Az óra díja: <strong style="color:var(--primary);">${fmt(svc.price)}</strong> – készpénz/Revolut az órán.</div>`;
+  }
+  window._bookingSlot=slot;
+  document.getElementById('booking-err').innerText='';document.getElementById('booking-suc').innerText='';
+  document.getElementById('booking-overlay').classList.remove('hidden');
+};
+window.closeBooking=()=>document.getElementById('booking-overlay').classList.add('hidden');
+
+window.confirmBooking=async()=>{
+  const slot=window._bookingSlot;if(!slot)return;
+  const svc=services.find(s=>s.id===(document.getElementById('book-service-sel').value));
+  const note=document.getElementById('booking-note').value.trim();
+  try{
+    // Mark slot as booked
+    await updateDoc(doc(db,"mgiSlots",slot.id),{booked:true,bookedBy:me.uid,bookedAt:serverTimestamp()});
+    // Create booking record
+    const activePass=await getActivePass();
+    const bookData={uid:me.uid,serviceId:svc.id,serviceName:svc.name,servicePrice:svc.price,date:selectedDate,time:slot.time,note,slotId:slot.id,usedPass:!!activePass,passId:activePass?.id||null,status:'confirmed',createdAt:serverTimestamp()};
+    await addDoc(collection(db,"mgiBookings"),bookData);
+    // Deduct pass if exists
+    if(activePass){
+      const newLeft=activePass.lessonsLeft-1;
+      await updateDoc(doc(db,"mgiPasses",activePass.id),{lessonsLeft:newLeft,lastUsed:serverTimestamp()});
+      if(newLeft<=0){
+        // Send expired email
+        await updateDoc(doc(db,"mgiPasses",activePass.id),{status:'expired'});
+        try{await emailjs.send(EJS_SVC,EJS_PASS_EXPIRED,{to_name:meData.name||me.displayName||'',to_email:me.email,pass_name:activePass.name,end_date:new Date().toLocaleDateString('hu-HU'),lessons_used:activePass.lessonsTotal,lessons_total:activePass.lessonsTotal});}catch(e){console.warn('EJS:',e);}
+        toast('⚠️ A bérleted elfogyott! Vegyél újat.',4000);
+      }
+    }
+    document.getElementById('booking-suc').innerText='✅ Foglalás rögzítve!';
+    toast('✅ Időpont lefoglalva!');
+    await renderCalendar();
+    setTimeout(closeBooking,1500);
+  }catch(e){document.getElementById('booking-err').innerText='Hiba: '+e.message;}
+};
+
+async function getActivePass(){
+  const snap=await getDocs(query(collection(db,"mgiPasses"),where("uid","==",me.uid),where("status","==","active")));
+  if(snap.empty)return null;
+  let best=null;
+  snap.forEach(d=>{const p={id:d.id,...d.data()};if(!best||p.createdAt>best.createdAt)best=p;});
+  return best?.lessonsLeft>0?best:null;
+}
+
+// ── PASSES ──
+async function loadPasses(){
+  const snap=await getDocs(query(collection(db,"mgiPassTypes"),orderBy("price","asc")));
+  passes=[];snap.forEach(d=>passes.push({id:d.id,...d.data()}));
+  renderPassGrid();
+}
+function renderPassGrid(){
+  const grid=document.getElementById('pass-grid');if(!grid)return;grid.innerHTML='';
+  passes.forEach(p=>{
+    const card=document.createElement('div');card.className='pass-card'+(p.featured?' featured':'');
+    card.innerHTML=`${p.featured?'<div class="pass-badge">LEGJOBB ÉRTÉK</div>':''}<div class="pass-name">${esc(p.name)}</div><div class="pass-price">${fmt(p.price)}</div><div class="pass-details">${p.lessons} alkalom<br>${p.validDays||30} napig érvényes<br><span style="color:var(--muted);font-size:11px;">${fmt(Math.round(p.price/p.lessons))} / óra</span></div><button class="btn btn-primary btn-w" style="margin-top:14px;" onclick="buyPass('${p.id}')">Megveszem</button>`;
+    grid.appendChild(card);
+  });
+}
+window.buyPass=async pid=>{
+  const p=passes.find(x=>x.id===pid);if(!p)return;
+  if(!confirm(`Megveszed a "${p.name}" bérletet (${fmt(p.price)})?`))return;
+  const expiry=new Date();expiry.setDate(expiry.getDate()+(p.validDays||30));
+  await addDoc(collection(db,"mgiPasses"),{uid:me.uid,passTypeId:pid,name:p.name,price:p.price,lessonsTotal:p.lessons,lessonsLeft:p.lessons,validUntil:expiry.toISOString(),status:'active',createdAt:serverTimestamp()});
+  toast('✅ Bérlet aktiválva!',3000);
+  renderActivePasses();
+};
+
+async function renderActivePasses(){
+  const wrap=document.getElementById('active-pass-wrap');if(!wrap)return;wrap.innerHTML='';
+  const snap=await getDocs(query(collection(db,"mgiPasses"),where("uid","==",me.uid),where("status","==","active")));
+  if(snap.empty){wrap.innerHTML='';return;}
+  snap.forEach(d=>{
+    const p={id:d.id,...d.data()};
+    const pct=Math.round((p.lessonsLeft/p.lessonsTotal)*100);
+    const exp=new Date(p.validUntil);
+    const div=document.createElement('div');div.className='active-pass card-glow';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.05em;">🎫 ${esc(p.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Lejár: ${exp.toLocaleDateString('hu-HU')} &nbsp;·&nbsp; ${p.lessonsLeft}/${p.lessonsTotal} alkalom</div></div><span class="badge badge-green">Aktív</span></div><div class="pass-progress"><div class="pass-progress-fill" style="width:${pct}%"></div></div>`;
+    wrap.appendChild(div);
+  });
+}
+
+// ── MY BOOKINGS ──
+async function loadMyBookings(){
+  const list=document.getElementById('my-bookings-list');list.innerHTML='<div style="color:var(--muted);padding:20px;">Betöltés...</div>';
+  const snap=await getDocs(query(collection(db,"mgiBookings"),where("uid","==",me.uid)));
+  const docs=[];snap.forEach(d=>docs.push({id:d.id,...d.data()}));
+  docs.sort((a,b)=>b.date.localeCompare(a.date));
+  list.innerHTML='';
+  if(!docs.length){list.innerHTML='<div style="color:var(--muted);padding:40px;text-align:center;">Még nincs foglalásod.<br><br><button class="btn btn-primary btn-sm" onclick="showPage(\'booking\')">Foglalok időpontot</button></div>';return;}
+  docs.forEach(b=>{
+    const d=new Date(b.date+'T00:00:00');
+    const div=document.createElement('div');div.className='booking-item';
+    div.innerHTML=`<div class="booking-date-box"><div class="booking-day">${d.getDate()}</div><div class="booking-month">${d.toLocaleDateString('hu-HU',{month:'short'})}</div></div><div class="booking-info"><div class="booking-time">🕐 ${b.time}</div><div class="booking-service">${esc(b.serviceName)}</div>${b.note?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">💬 ${esc(b.note)}</div>`:''}</div><div>${b.usedPass?'<span class="badge badge-green">🎫 Bérlet</span>':'<span class="badge badge-orange">Készpénz</span>'}</div>`;
+    list.appendChild(div);
+  });
+}
+
+// ── HOME STATS ──
+async function loadHomeStats(){
+  const [bs,ps,rs]=await Promise.all([
+    getDocs(query(collection(db,"mgiBookings"),where("uid","==",me.uid))),
+    getDocs(query(collection(db,"mgiPasses"),where("uid","==",me.uid),where("status","==","active"))),
+    getDocs(collection(db,"mgiReviews"))
+  ]);
+  document.getElementById('hs-bookings').innerText=bs.size;
+  document.getElementById('hs-passes').innerText=ps.size;
+  document.getElementById('hs-reviews').innerText=rs.size;
+}
+
+// ── MESSAGES ──
+function listenConversations(){
+  if(convUnsub)convUnsub();
+  const q=query(collection(db,"mgiConversations"),where("members","array-contains",me.uid),orderBy("lastAt","desc"));
+  convUnsub=onSnapshot(q,async snap=>{
+    const convs=[];snap.forEach(d=>convs.push({id:d.id,...d.data()}));
+    const hasUnread=convs.some(c=>(c.unread||{})[me.uid]>0);
+    document.getElementById('msg-notif').classList.toggle('hidden',!hasUnread);
+    await renderConvListFromData(convs);
+  });
+}
+
+async function renderConvList(){
+  const snap=await getDocs(query(collection(db,"mgiConversations"),where("members","array-contains",me.uid),orderBy("lastAt","desc")));
+  const convs=[];snap.forEach(d=>convs.push({id:d.id,...d.data()}));
+  await renderConvListFromData(convs);
+}
+
+async function renderConvListFromData(convs){
+  const list=document.getElementById('msg-conv-list');list.innerHTML='';
+  if(!convs.length){list.innerHTML='<div style="padding:16px;color:var(--muted);font-size:13px;">Még nincs üzeneted.</div>';return;}
+  for(const c of convs){
+    const oid=c.members.find(m=>m!==me.uid);
+    const u=await getCachedUser(oid);
+    const unread=(c.unread||{})[me.uid]||0;
+    const item=document.createElement('div');item.className='msg-conv-item'+(activeConvId===c.id?' active':'');
+    item.innerHTML=`<img class="msg-conv-av" src="${u.avatar}" onerror="this.innerText='👤';this.style.fontSize='14px'"><div style="flex:1;min-width:0;"><div class="msg-conv-name">${esc(u.name)}</div><div class="msg-conv-preview">${esc(c.lastMsg||'...')}</div></div>${unread?`<div class="msg-unread">${unread}</div>`:''}`;
+    item.onclick=()=>openConv(c.id,oid,u);
+    list.appendChild(item);
+  }
+}
+
+async function openOrCreateConv(uid){
+  const snap=await getDocs(query(collection(db,"mgiConversations"),where("members","array-contains",me.uid)));
+  let existing=null;
+  snap.forEach(d=>{if(d.data().members.includes(uid))existing={id:d.id,...d.data()};});
+  if(!existing){const ref=await addDoc(collection(db,"mgiConversations"),{members:[me.uid,uid],lastMsg:'',lastAt:serverTimestamp(),unread:{[me.uid]:0,[uid]:0}});existing={id:ref.id,members:[me.uid,uid]};}
+  const u=await getCachedUser(uid);
+  openConv(existing.id,uid,u);
+}
+
+function openConv(convId,oid,other){
+  activeConvId=convId;
+  updateDoc(doc(db,"mgiConversations",convId),{[`unread.${me.uid}`]:0}).catch(()=>{});
+  document.querySelectorAll('.msg-conv-item').forEach(i=>i.classList.remove('active'));
+  const area=document.getElementById('msg-main-area');
+  const isCoachOrAdmin=isCoach;
+  area.innerHTML=`
+    <div class="msg-hdr">
+      <img class="msg-hdr-av" src="${other.avatar}" onerror="this.innerText='👤'">
+      <div><div class="msg-hdr-name">${esc(other.name)}</div><div class="msg-hdr-role">${other.role==='admin'?'⚙️ Admin':other.role==='coach'?'🎸 Edző':'👤 Tanuló'}</div></div>
+    </div>
+    <div class="msg-body" id="msg-body"></div>
+    <div class="msg-footer">
+      <div class="msg-quota" id="msg-quota-display"></div>
+      <div class="msg-input-row">
+        <textarea id="msg-input" rows="1" placeholder="Üzenet..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+        <button class="msg-send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>`;
+  updateQuotaDisplay(convId);
+  if(msgUnsub)msgUnsub();
+  msgUnsub=onSnapshot(query(collection(db,"mgiConversations",convId,"messages"),orderBy("at","asc")),async snap=>{
+    const body=document.getElementById('msg-body');if(!body)return;
+    body.innerHTML='';
+    if(snap.empty){body.innerHTML='<div class="msg-empty"><div style="font-size:2rem;">💬</div><div>Írd az első üzenetet!</div></div>';return;}
+    for(const d of snap.docs){
+      const m=d.data();const mine=m.uid===me.uid;
+      const u=mine?{avatar:document.getElementById('header-av').src,name:''}:other;
+      const row=document.createElement('div');row.className='msg-bubble-wrap'+(mine?' mine':'');
+      const t=m.at?new Date(m.at.toDate()).toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'}):'';
+      row.innerHTML=`<img class="msg-av-sm" src="${u.avatar}" onerror="this.innerText='👤'"><div><div class="msg-bubble">${esc(m.text)}</div><div class="msg-time">${t}</div></div>`;
+      body.appendChild(row);
+    }
+    body.scrollTop=body.scrollHeight;
+  });
+}
+
+async function updateQuotaDisplay(convId){
+  const el=document.getElementById('msg-quota-display');if(!el)return;
+  if(isCoach){el.innerText='';return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  // Count new convs today
+  const newSnap=await getDocs(query(collection(db,"mgiConversations",convId,"messages"),where("uid","==",me.uid),where("at",">=",Timestamp.fromDate(today))));
+  const allConvSnap=await getDocs(query(collection(db,"mgiConversations"),where("members","array-contains",me.uid)));
+  let totalMsgs=0,totalReplies=0;
+  for(const cv of allConvSnap.docs){
+    const ms=await getDocs(query(collection(db,"mgiConversations",cv.id,"messages"),where("uid","==",me.uid),where("at",">=",Timestamp.fromDate(today))));
+    ms.forEach(m=>{if(m.data().isReply)totalReplies++;else totalMsgs++;});
+  }
+  el.innerHTML=`Napi kvóta: <span>${2-totalMsgs}</span>/2 új üzenet &nbsp;·&nbsp; <span>${5-totalReplies}</span>/5 válasz`;
+}
+
+window.sendMsg=async()=>{
+  const input=document.getElementById('msg-input');if(!input)return;
+  const text=input.value.trim();if(!text||!activeConvId)return;
+  // Quota check for non-coach
+  if(!isCoach){
+    const today=new Date();today.setHours(0,0,0,0);
+    const allConvSnap=await getDocs(query(collection(db,"mgiConversations"),where("members","array-contains",me.uid)));
+    let totalMsgs=0,totalReplies=0;
+    for(const cv of allConvSnap.docs){
+      const ms=await getDocs(query(collection(db,"mgiConversations",cv.id,"messages"),where("uid","==",me.uid),where("at",">=",Timestamp.fromDate(today))));
+      ms.forEach(m=>{if(m.data().isReply)totalReplies++;else totalMsgs++;});
+    }
+    // Check if this conv already has msgs today (reply) or not (new)
+    const thisConvMsgs=await getDocs(query(collection(db,"mgiConversations",activeConvId,"messages"),where("uid","==",me.uid),where("at",">=",Timestamp.fromDate(today))));
+    const isReply=thisConvMsgs.size>0;
+    if(isReply&&totalReplies>=5){toast('⛔ Elérted a napi 5 válasz limitedet!',3000);return;}
+    if(!isReply&&totalMsgs>=2){toast('⛔ Elérted a napi 2 új üzenet limitedet!',3000);return;}
+    input.value='';input.style.height='auto';
+    const csnap=await getDoc(doc(db,"mgiConversations",activeConvId));
+    const otherId=csnap.data().members.find(m=>m!==me.uid);
+    await Promise.all([
+      addDoc(collection(db,"mgiConversations",activeConvId,"messages"),{uid:me.uid,text,at:serverTimestamp(),isReply}),
+      updateDoc(doc(db,"mgiConversations",activeConvId),{lastMsg:text.slice(0,50),lastAt:serverTimestamp(),[`unread.${otherId}`]:increment(1)})
+    ]);
+    updateQuotaDisplay(activeConvId);
+    return;
+  }
+  // Coach/admin – no limit
+  input.value='';input.style.height='auto';
+  const csnap=await getDoc(doc(db,"mgiConversations",activeConvId));
+  const otherId=csnap.data().members.find(m=>m!==me.uid);
+  const otherUser=await getCachedUser(otherId);
+  await Promise.all([
+    addDoc(collection(db,"mgiConversations",activeConvId,"messages"),{uid:me.uid,text,at:serverTimestamp(),isReply:false}),
+    updateDoc(doc(db,"mgiConversations",activeConvId),{lastMsg:text.slice(0,50),lastAt:serverTimestamp(),[`unread.${otherId}`]:increment(1)})
+  ]);
+  // Send email notification
+  try{await emailjs.send(EJS_SVC,EJS_MSG,{to_name:otherUser.name,to_email:otherUser.email||'',sender_name:meData.name||me.displayName||'Marci',message:text});}catch(e){console.warn('EJS:',e);}
+};
+
+window.openNewMsg=async()=>{
+  document.getElementById('newmsg-overlay').classList.remove('hidden');
+  document.getElementById('newmsg-text').value='';document.getElementById('newmsg-err').innerText='';
+  // Quota info
+  if(!isCoach){
+    document.getElementById('newmsg-quota-info').innerHTML='<div class="badge badge-orange">Napi limit: 2 új üzenet</div>';
+  }else{
+    document.getElementById('newmsg-quota-info').innerHTML='<span class="badge badge-blue">Korlátlan küldés</span>';
+  }
+  // User list (admin sees all users)
+  const sel=document.getElementById('newmsg-user-select');
+  sel.innerHTML='<div style="color:var(--muted);font-size:13px;">Betöltés...</div>';
+  const snap=await getDocs(collection(db,"mgiUsers"));
+  let opts='<label class="lbl">Felhasználó</label><select class="inp" id="newmsg-to" style="margin-bottom:0;">';
+  snap.forEach(d=>{if(d.id!==me.uid)opts+=`<option value="${d.id}">${esc(d.data().name||'?')} (${d.data().role||'user'})</option>`;});
+  opts+='</select>';sel.innerHTML=opts;
+};
+
+window.sendNewMessage=async()=>{
+  const toUid=document.getElementById('newmsg-to')?.value;
+  const text=document.getElementById('newmsg-text').value.trim();
+  if(!toUid||!text){document.getElementById('newmsg-err').innerText='Töltsd ki az összes mezőt!';return;}
+  document.getElementById('newmsg-overlay').classList.add('hidden');
+  await openOrCreateConv(toUid);
+  showPage('messages');
+  setTimeout(()=>{const inp=document.getElementById('msg-input');if(inp){inp.value=text;sendMsg();}},600);
+};
+
+// ── REVIEWS ──
+async function loadReviews(){
+  const list=document.getElementById('reviews-list');list.innerHTML='';
+  const snap=await getDocs(query(collection(db,"mgiReviews"),orderBy("createdAt","desc")));
+  if(snap.empty){list.innerHTML='<div style="color:var(--muted);padding:20px;text-align:center;">Még nincsenek értékelések. Legyél az első!</div>';return;}
+  snap.forEach(d=>{
+    const r=d.data();
+    const stars='★'.repeat(r.rating||5)+'☆'.repeat(5-(r.rating||5));
+    const card=document.createElement('div');card.className='review-card';
+    card.innerHTML=`<div class="review-stars">${stars}</div><div class="review-text">${esc(r.text||'')}</div><div class="review-author">– ${esc(r.userName||'Névtelen')} &nbsp;·&nbsp; ${timeAgo(r.createdAt)}</div>`;
+    list.appendChild(card);
+  });
+}
+window.openReviewForm=()=>{
+  let sel=5;
+  const el=document.createElement('div');el.className='overlay';
+  el.innerHTML=`<div class="modal"><button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button><div class="modal-title">Értékelés</div>
+    <div class="form-group"><label class="lbl">Csillagok</label><div style="display:flex;gap:8px;font-size:1.8rem;cursor:pointer;" id="rev-stars">${[1,2,3,4,5].map(i=>`<span onclick="document.getElementById('rev-stars').dataset.val=${i};[...document.getElementById('rev-stars').children].forEach((s,j)=>s.style.color=j<${i}?'var(--accent)':'var(--border2)')" style="color:${i<=5?'var(--accent)':'var(--border2)'};">★</span>`).join('')}</div></div>
+    <div class="form-group"><label class="lbl">Vélemény</label><textarea class="inp" id="rev-text" rows="4" placeholder="Írd le a tapasztalatod..."></textarea></div>
+    <button class="btn btn-primary btn-w" onclick="submitReview(this)">Küldés</button>
+    <p class="err" id="rev-err"></p></div>`;
+  document.getElementById('rev-stars').dataset.val='5';
+  document.body.appendChild(el);
+};
+window.submitReview=async btn=>{
+  const rating=parseInt(document.getElementById('rev-stars').dataset.val||'5');
+  const text=document.getElementById('rev-text').value.trim();
+  if(!text){document.getElementById('rev-err').innerText='Írj valamit!';return;}
+  btn.disabled=true;
+  await addDoc(collection(db,"mgiReviews"),{uid:me.uid,userName:meData.name||me.displayName||'Névtelen',rating,text,createdAt:serverTimestamp()});
+  btn.closest('.overlay').remove();toast('✅ Köszönjük az értékelést!');loadReviews();
+};
+
+// ── PROFILE ──
+window.saveProfile=async()=>{
+  const name=document.getElementById('prof-name-inp').value.trim();
+  await updateProfile(auth.currentUser,{displayName:name});
+  await updateDoc(doc(db,"mgiUsers",me.uid),{name});
+  meData.name=name;delete userCache[me.uid];
+  document.getElementById('prof-name-disp').innerText=name;
+  document.getElementById('header-name').innerText=name.split(' ')[0];
+  document.getElementById('prof-msg').innerText='✅ Mentve!';
+  setTimeout(()=>document.getElementById('prof-msg').innerText='',2500);
+};
+
+// ── PASS EXPIRY CHECK ──
+async function checkActivePasses(){
+  const snap=await getDocs(query(collection(db,"mgiPasses"),where("uid","==",me.uid),where("status","==","active")));
+  const now=new Date();
+  snap.forEach(async d=>{
+    const p={id:d.id,...d.data()};
+    const exp=new Date(p.validUntil);
+    if(exp<now||p.lessonsLeft<=0){
+      await updateDoc(doc(db,"mgiPasses",p.id),{status:'expired'});
+      try{await emailjs.send(EJS_SVC,EJS_PASS_EXPIRED,{to_name:meData.name||me.displayName||'',to_email:me.email,pass_name:p.name,end_date:exp.toLocaleDateString('hu-HU'),lessons_used:p.lessonsTotal-p.lessonsLeft,lessons_total:p.lessonsTotal});}catch(e){console.warn('EJS:',e);}
+    }
+  });
+}
+
+// ── ADMIN ──
+window.switchAdmin=(panel,btn)=>{
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('admin-'+panel).classList.add('active');
+  document.querySelectorAll('.admin-nav-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(panel==='bookings-admin')loadAdminBookings();
+  if(panel==='passes-admin')loadAdminPasses();
+  if(panel==='services-admin')loadAdminServices();
+  if(panel==='timeslots-admin')loadAdminTimeslots();
+  if(panel==='users-admin')loadAdminUsers();
+};
+
+async function loadAdminData(){
+  const [bs,us,ps,rs]=await Promise.all([
+    getDocs(collection(db,"mgiBookings")),
+    getDocs(collection(db,"mgiUsers")),
+    getDocs(query(collection(db,"mgiPasses"),where("status","==","active"))),
+    getDocs(collection(db,"mgiReviews"))
+  ]);
+  document.getElementById('admin-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${bs.size}</div><div class="stat-lbl">Foglalás</div></div>
+    <div class="stat-card"><div class="stat-num">${us.size}</div><div class="stat-lbl">Tanuló</div></div>
+    <div class="stat-card"><div class="stat-num">${ps.size}</div><div class="stat-lbl">Aktív bérlet</div></div>
+    <div class="stat-card"><div class="stat-num">${rs.size}</div><div class="stat-lbl">Értékelés</div></div>`;
+}
+
+async function loadAdminBookings(){
+  const tbody=document.getElementById('admin-bookings-tbody');tbody.innerHTML='';
+  const snap=await getDocs(query(collection(db,"mgiBookings")));
+  const docs=[];snap.forEach(d=>docs.push({id:d.id,...d.data()}));
+  docs.sort((a,b)=>b.date.localeCompare(a.date));
+  if(!docs.length){tbody.innerHTML='<tr><td colspan="6" style="color:var(--muted);">Még nincs foglalás.</td></tr>';return;}
+  for(const b of docs){
+    const u=await getCachedUser(b.uid);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${esc(u.name)}</strong></td><td>${esc(b.serviceName)}</td><td>${b.date}</td><td>${b.time}</td><td>${b.usedPass?'<span class="badge badge-green">Bérlet</span>':'<span class="badge badge-orange">Készpénz</span>'}</td><td><button class="btn btn-danger btn-sm" onclick="deleteBooking('${b.id}','${b.slotId}')">Töröl</button></td>`;
+    tbody.appendChild(tr);
+  }
+}
+window.deleteBooking=async(bid,slotId)=>{
+  if(!confirm('Törlöd a foglalást?'))return;
+  await deleteDoc(doc(db,"mgiBookings",bid));
+  if(slotId)await updateDoc(doc(db,"mgiSlots",slotId),{booked:false,bookedBy:null}).catch(()=>{});
+  toast('🗑 Foglalás törölve!');loadAdminBookings();
+};
+
+async function loadAdminPasses(){
+  const list=document.getElementById('admin-passes-list');list.innerHTML='';
+  const snap=await getDocs(query(collection(db,"mgiPassTypes"),orderBy("price","asc")));
+  if(snap.empty){list.innerHTML='<div style="color:var(--muted);padding:16px;">Még nincs bérlet típus. Adj hozzá!</div>';return;}
+  snap.forEach(d=>{
+    const p={id:d.id,...d.data()};
+    const div=document.createElement('div');div.className='card';div.style.marginBottom='10px';
+    div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div><strong>${esc(p.name)}</strong> &nbsp;<span class="badge badge-orange">${fmt(p.price)}</span> &nbsp;<span style="color:var(--muted);font-size:12px;">${p.lessons} alkalom · ${p.validDays||30} nap</span></div><button class="btn btn-danger btn-sm" onclick="deletePassType('${p.id}')">Töröl</button></div>`;
+    list.appendChild(div);
+  });
+}
+window.openAddPass=()=>{
+  const el=document.createElement('div');el.className='overlay';
+  el.innerHTML=`<div class="modal"><button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button><div class="modal-title">Új bérlet típus</div>
+    <div class="form-group"><label class="lbl">Neve</label><input class="inp" type="text" id="np-name" placeholder="10 alkalom"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="lbl">Ár (Ft)</label><input class="inp" type="number" id="np-price" placeholder="40000"></div>
+      <div class="form-group"><label class="lbl">Alkalmak száma</label><input class="inp" type="number" id="np-lessons" placeholder="10"></div>
+    </div>
+    <div class="form-group"><label class="lbl">Érvényesség (nap)</label><input class="inp" type="number" id="np-days" placeholder="90"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:14px;"><input type="checkbox" id="np-featured"> Kiemelt (legjobb érték)</label>
+    <button class="btn btn-primary btn-w" onclick="savePassType(this)">Mentés</button>
+    <p class="err" id="np-err"></p></div>`;
+  document.body.appendChild(el);
+};
+window.savePassType=async btn=>{
+  const name=document.getElementById('np-name').value.trim();
+  const price=parseInt(document.getElementById('np-price').value);
+  const lessons=parseInt(document.getElementById('np-lessons').value);
+  const validDays=parseInt(document.getElementById('np-days').value)||90;
+  const featured=document.getElementById('np-featured').checked;
+  if(!name||!price||!lessons){document.getElementById('np-err').innerText='Töltsd ki a mezőket!';return;}
+  btn.disabled=true;
+  await addDoc(collection(db,"mgiPassTypes"),{name,price,lessons,validDays,featured,createdAt:serverTimestamp()});
+  btn.closest('.overlay').remove();toast('✅ Bérlet típus hozzáadva!');loadPasses();loadAdminPasses();
+};
+window.deletePassType=async pid=>{
+  if(!confirm('Törlöd?'))return;await deleteDoc(doc(db,"mgiPassTypes",pid));loadPasses();loadAdminPasses();toast('🗑 Törölve!');
+};
+
+async function loadAdminServices(){
+  const list=document.getElementById('admin-services-list');list.innerHTML='';
+  const snap=await getDocs(query(collection(db,"mgiServices"),orderBy("createdAt","asc")));
+  if(snap.empty){list.innerHTML='<div style="color:var(--muted);padding:16px;">Még nincs szolgáltatás.</div>';return;}
+  snap.forEach(d=>{
+    const s={id:d.id,...d.data()};
+    const div=document.createElement('div');div.className='card';div.style.marginBottom='10px';
+    div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div><strong>${s.emoji||'🎸'} ${esc(s.name)}</strong> &nbsp;<span class="badge badge-orange">${fmt(s.price)}</span> &nbsp;<span style="color:var(--muted);font-size:12px;">${s.duration||60} perc</span></div><div style="display:flex;gap:6px;"><button class="btn btn-outline btn-sm" onclick="editService('${s.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteService('${s.id}')">🗑</button></div></div>`;
+    list.appendChild(div);
+  });
+}
+window.editService=s=>{window._editServiceId=s;document.getElementById('addservice-title').innerText='Szolgáltatás szerkesztése';document.getElementById('addservice-overlay').classList.remove('hidden');};
+window.deleteService=async sid=>{if(!confirm('Törlöd?'))return;await deleteDoc(doc(db,"mgiServices",sid));loadServices();loadAdminServices();toast('🗑 Törölve!');};
+
+window.addTimeSlots=async()=>{
+  const date=document.getElementById('ts-date').value;
+  const timesRaw=document.getElementById('ts-times').value;
+  if(!date||!timesRaw){toast('⚠️ Töltsd ki a mezőket!');return;}
+  const times=timesRaw.split(',').map(t=>t.trim()).filter(t=>t);
+  for(const time of times){
+    await addDoc(collection(db,"mgiSlots"),{date,time,booked:false,createdAt:serverTimestamp()});
+  }
+  document.getElementById('ts-msg').innerText=`✅ ${times.length} időpont hozzáadva!`;
+  setTimeout(()=>document.getElementById('ts-msg').innerText='',2500);
+  loadAdminTimeslots();await renderCalendar();
+};
+
+async function loadAdminTimeslots(){
+  const list=document.getElementById('timeslots-admin-list');if(!list)return;list.innerHTML='';
+  const today=new Date().toISOString().slice(0,10);
+  const snap=await getDocs(query(collection(db,"mgiSlots"),where("date",">=",today),orderBy("date","asc")));
+  const byDate={};snap.forEach(d=>{const s={id:d.id,...d.data()};if(!byDate[s.date])byDate[s.date]=[];byDate[s.date].push(s);});
+  if(!Object.keys(byDate).length){list.innerHTML='<div style="color:var(--muted);font-size:13px;">Nincsenek közelgő időpontok.</div>';return;}
+  Object.entries(byDate).forEach(([date,slots])=>{
+    const div=document.createElement('div');div.className='card';div.style.marginBottom='10px';
+    div.innerHTML=`<div style="font-weight:700;margin-bottom:8px;">${friendlyDate(date)}</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${slots.map(s=>`<span style="padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;background:${s.booked?'rgba(248,113,113,.1)':'rgba(74,222,128,.1)'};color:${s.booked?'var(--danger)':'var(--accent2)'};border:1px solid ${s.booked?'rgba(248,113,113,.2)':'rgba(74,222,128,.2)'};">${s.time} ${s.booked?'🔒':''} ${!s.booked?`<button onclick="deleteSlot('${s.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;margin-left:2px;">✕</button>`:''}</span>`).join('')}</div>`;
+    list.appendChild(div);
+  });
+}
+window.deleteSlot=async sid=>{await deleteDoc(doc(db,"mgiSlots",sid));loadAdminTimeslots();renderCalendar();toast('🗑 Időpont törölve!');};
+
+async function loadAdminUsers(){
+  const tbody=document.getElementById('admin-users-tbody');tbody.innerHTML='';
+  const snap=await getDocs(collection(db,"mgiUsers"));
+  for(const d of snap.docs){
+    const u={id:d.id,...d.data()};
+    const [psnap,bsnap]=await Promise.all([
+      getDocs(query(collection(db,"mgiPasses"),where("uid","==",d.id),where("status","==","active"))),
+      getDocs(query(collection(db,"mgiBookings"),where("uid","==",d.id)))
+    ]);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${esc(u.name||'?')}</strong></td><td style="color:var(--muted);">${esc(u.email||'')}</td><td><span class="badge badge-${u.role==='admin'?'orange':u.role==='coach'?'blue':'green'}">${u.role||'user'}</span></td><td>${psnap.size>0?'<span class="badge badge-green">Aktív</span>':'<span class="badge badge-red">Nincs</span>'}</td><td>${bsnap.size}</td><td><select style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;" onchange="setUserRole('${d.id}',this.value)"><option value="user" ${(u.role||'user')==='user'?'selected':''}>Tanuló</option><option value="coach" ${u.role==='coach'?'selected':''}>Edző</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>`;
+    tbody.appendChild(tr);
+  }
+}
+window.setUserRole=async(uid,role)=>{await updateDoc(doc(db,"mgiUsers",uid),{role});delete userCache[uid];toast('✅ Rang frissítve!');};
+
+window.onServiceSelect=()=>{selectedServiceId=document.getElementById('book-service-sel').value;};
+</script>
+</body>
+</html>
