@@ -620,6 +620,13 @@ tr:hover td{background:rgba(255,255,255,.02);}
           <option value="junior">18 év alatti (kedvezményes)</option>
         </select>
       </div>
+      <div class="form-group" style="margin-top:10px;"><label class="lbl">Szint</label>
+        <select class="inp" id="prof-level-inp" style="margin-bottom:0;">
+          <option value="beginner">🟢 Kezdő</option>
+          <option value="intermediate">🟡 Középhaladó</option>
+          <option value="advanced">🔴 Haladó</option>
+        </select>
+      </div>
       <button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="saveProfile()">Mentés</button>
       <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="margin-left:8px;">Kilépés</button>
       <p class="suc" id="prof-msg"></p>
@@ -770,9 +777,12 @@ async function setupUI(user,ud){
   document.getElementById('prof-email-disp').innerText=user.email;
   document.getElementById('prof-name-inp').value=ud.name||user.displayName||'';
   if(document.getElementById('prof-age-inp')) document.getElementById('prof-age-inp').value=ud.ageGroup||'adult';
+  if(document.getElementById('prof-level-inp')) document.getElementById('prof-level-inp').value=ud.level||'beginner';
   const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
-  const ageLabel=ud.ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior (kedvezményes)</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
-  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[ud.role||'user']||'Tanuló'}</span>${ageLabel}`;
+  const ageLabel=ud.ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
+  const levelMap={beginner:'🟢 Kezdő',intermediate:'🟡 Középhaladó',advanced:'🔴 Haladó'};
+  const levelLabel=`<span class="badge badge-orange" style="margin-left:6px;">${levelMap[ud.level||'beginner']}</span>`;
+  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[ud.role||'user']||'Tanuló'}</span>${ageLabel}${levelLabel}`;
   if(isAdmin){document.getElementById('nav-admin').classList.remove('hidden');}
   if(isCoach){document.getElementById('nav-orarend').classList.remove('hidden');}
   await Promise.all([loadServices(),loadPasses(),loadHomeStats()]);
@@ -1269,9 +1279,11 @@ window.saveProfile=async()=>{
   meData.name=name;meData.ageGroup=ageGroup;delete userCache[me.uid];
   document.getElementById('prof-name-disp').innerText=name;
   document.getElementById('header-name').innerText=name.split(' ')[0];
-  const ageLabel=ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior (kedvezményes)</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
+  const ageLabel2=ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
+  const lvlMap={beginner:'🟢 Kezdő',intermediate:'🟡 Középhaladó',advanced:'🔴 Haladó'};
+  const levelLabel2=`<span class="badge badge-orange" style="margin-left:6px;">${lvlMap[level]}</span>`;
   const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
-  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[meData.role||'user']||'Tanuló'}</span>${ageLabel}`;
+  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[meData.role||'user']||'Tanuló'}</span>${ageLabel2}${levelLabel2}`;
   document.getElementById('prof-msg').innerText='✅ Mentve!';
   setTimeout(()=>document.getElementById('prof-msg').innerText='',2500);
 };
@@ -1438,7 +1450,8 @@ async function loadAdminUsers(){
     ]);
     const tr=document.createElement('tr');
     const ageDisp=u.ageGroup==='junior'?'<span class="badge badge-blue">🎓 Junior</span>':'<span class="badge badge-green">👤 Felnőtt</span>';
-    tr.innerHTML=`<td><strong>${esc(u.name||'?')}</strong></td><td style="color:var(--muted);">${esc(u.email||'')}</td><td><span class="badge badge-${u.role==='admin'?'orange':u.role==='coach'?'blue':'green'}">${u.role||'user'}</span> ${ageDisp}</td><td>${psnap.size>0?'<span class="badge badge-green">Aktív</span>':'<span class="badge badge-red">Nincs</span>'}</td><td>${bsnap.size}</td><td><select style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;" onchange="setUserRole('${d.id}',this.value)"><option value="user" ${(u.role||'user')==='user'?'selected':''}>Tanuló</option><option value="coach" ${u.role==='coach'?'selected':''}>Edző</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>`;
+    const lvlDisp={beginner:'🟢 Kezdő',intermediate:'🟡 Közép',advanced:'🔴 Haladó'}[u.level||'beginner']||'🟢 Kezdő';
+    tr.innerHTML=`<td><strong>${esc(u.name||'?')}</strong></td><td style="color:var(--muted);">${esc(u.email||'')}</td><td><span class="badge badge-${u.role==='admin'?'orange':u.role==='coach'?'blue':'green'}">${u.role||'user'}</span> ${ageDisp} <span class="badge badge-orange">${lvlDisp}</span></td><td>${psnap.size>0?'<span class="badge badge-green">Aktív</span>':'<span class="badge badge-red">Nincs</span>'}</td><td>${bsnap.size}</td><td><select style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;" onchange="setUserRole('${d.id}',this.value)"><option value="user" ${(u.role||'user')==='user'?'selected':''}>Tanuló</option><option value="coach" ${u.role==='coach'?'selected':''}>Edző</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>`;
     tbody.appendChild(tr);
   }
 }
@@ -1468,18 +1481,20 @@ async function renderWeekSchedule(){
   const days=getWeekDates(weekOffset);
   const from=days[0].toISOString().slice(0,10);
   const to=days[6].toISOString().slice(0,10);
-  // Title
   const opts={month:'long',day:'numeric'};
   document.getElementById('week-title').innerText=`${days[0].toLocaleDateString('hu-HU',opts)} – ${days[6].toLocaleDateString('hu-HU',opts)}`;
-  // Load lessons for this week
-  const snap=await getDocs(query(collection(db,'mgiLessons'),where('date','>=',from),where('date','<=',to),orderBy('date','asc')));
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML='<div style="color:var(--muted);padding:20px;grid-column:1/-1;">⏳ Betöltés...</div>';
+  try{
+  // Load one-time lessons for this week
+  const snap=await getDocs(query(collection(db,'mgiLessons'),where('date','>=',from),where('date','<=',to)));
   const lessonsByDate={};
   snap.forEach(d=>{const l={id:d.id,...d.data()};if(!lessonsByDate[l.date])lessonsByDate[l.date]=[];lessonsByDate[l.date].push(l);});
-  // Also load recurring lessons
+  // Load all recurring lessons (no orderBy needed - avoid index requirement)
   const recSnap=await getDocs(collection(db,'mgiRecurringLessons'));
   const recurring=[];recSnap.forEach(d=>recurring.push({id:d.id,...d.data()}));
   const todayStr=new Date().toISOString().slice(0,10);
-  const grid=document.getElementById('week-grid');grid.innerHTML='';
+  grid.innerHTML='';
   days.forEach((date,i)=>{
     const ds=date.toISOString().slice(0,10);
     const isToday=ds===todayStr;
@@ -1510,6 +1525,7 @@ async function renderWeekSchedule(){
     addChip.onclick=()=>openAddLesson(ds,dayNum);
     lessonWrap.appendChild(addChip);
   });
+  }catch(e){grid.innerHTML=`<div style="color:var(--danger);padding:20px;grid-column:1/-1;">Hiba: ${e.message}</div>`;console.error(e);}
 }
 
 // Open add lesson modal
@@ -1523,7 +1539,7 @@ window.openAddLesson=async(date,weekday)=>{
     <div class="modal-title">Új óra hozzáadása</div>
     <div class="form-group"><label class="lbl">Óra neve</label><input class="inp" type="text" id="al-name" placeholder="pl. Kezdő gitáróra"></div>
     <div class="form-row">
-      <div class="form-group"><label class="lbl">Időpont</label><input class="inp" type="time" id="al-time" value="10:00"></div>
+      <div class="form-group"><label class="lbl">Időpont</label><input class="inp" type="time" id="al-time-inp" value="10:00"></div>
       <div class="form-group"><label class="lbl">Típus</label>
         <select class="inp" id="al-type" style="margin-bottom:0;">
           <option value="recurring">Fix ismétlődő (hetente)</option>
@@ -1543,7 +1559,7 @@ window.openAddLesson=async(date,weekday)=>{
 
 window.saveLesson=async(date,weekday)=>{
   const name=document.getElementById('al-name').value.trim();
-  const time=document.getElementById('al-time').value;
+  const time=document.getElementById('al-time-inp').value;
   const type=document.getElementById('al-type').value;
   const sel=document.getElementById('al-students');
   const students=[...sel.selectedOptions].map(o=>o.value);
