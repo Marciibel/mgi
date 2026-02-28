@@ -1205,44 +1205,82 @@ window.sendNewMessage=async()=>{
 
 // ── REVIEWS ──
 async function loadReviews(){
-  const list=document.getElementById('reviews-list');list.innerHTML='';
-  const snap=await getDocs(collection(db,"mgiReviews"));
-  if(snap.empty){list.innerHTML='<div style="color:var(--muted);padding:20px;text-align:center;">Még nincsenek értékelések. Legyél az első!</div>';return;}
-  const revDocs=[];snap.forEach(d=>revDocs.push({id:d.id,...d.data()}));
-  revDocs.sort((a,b)=>{const ta=a.createdAt?.toDate?a.createdAt.toDate():new Date(a.createdAt||0);const tb=b.createdAt?.toDate?b.createdAt.toDate():new Date(b.createdAt||0);return tb-ta;});
-  revDocs.forEach(r=>{
-    const stars='★'.repeat(r.rating||5)+'☆'.repeat(5-(r.rating||5));
-    const card=document.createElement('div');card.className='review-card';
-    card.innerHTML=`<div class="review-stars">${stars}</div><div class="review-text">${esc(r.text||'')}</div><div class="review-author">– ${esc(r.userName||'Névtelen')} &nbsp;·&nbsp; ${timeAgo(r.createdAt)}</div>`;
-    list.appendChild(card);
-  });
+  const list=document.getElementById('reviews-list');
+  if(!list)return;
+  list.innerHTML='<div style="color:var(--muted);padding:20px;">Betöltés...</div>';
+  try{
+    const snap=await getDocs(collection(db,'mgiReviews'));
+    const docs=[];
+    snap.forEach(d=>docs.push({id:d.id,...d.data()}));
+    docs.sort((a,b)=>{
+      const ta=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate().getTime():0;
+      const tb=b.createdAt&&b.createdAt.toDate?b.createdAt.toDate().getTime():0;
+      return tb-ta;
+    });
+    list.innerHTML='';
+    if(!docs.length){
+      list.innerHTML='<div style="color:var(--muted);padding:20px;text-align:center;">Még nincsenek értékelések. Legyél az első!</div>';
+      return;
+    }
+    docs.forEach(rev=>{
+      const rating=rev.rating||5;
+      const stars='★'.repeat(rating)+'☆'.repeat(5-rating);
+      const card=document.createElement('div');
+      card.className='review-card';
+      card.innerHTML='<div class="review-stars">'+stars+'</div><div class="review-text">'+esc(rev.text||'')+'</div><div class="review-author">– '+esc(rev.userName||'Névtelen')+' · '+timeAgo(rev.createdAt)+'</div>';
+      list.appendChild(card);
+    });
+  }catch(e){
+    list.innerHTML='<div style="color:var(--danger);padding:20px;">Hiba: '+e.message+'</div>';
+    console.error('loadReviews error:',e);
+  }
 }
+
 window.openReviewForm=()=>{
-  let sel=5;
-  const el=document.createElement('div');el.className='overlay';
-  el.innerHTML=`<div class="modal"><button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button><div class="modal-title">Értékelés</div>
-    <div class="form-group"><label class="lbl">Csillagok</label>
-    <div style="display:flex;gap:8px;font-size:1.8rem;cursor:pointer;" id="rev-stars">
-      <span onclick="selectStar(1)" id="rs1" style="color:var(--accent);">★</span>
-      <span onclick="selectStar(2)" id="rs2" style="color:var(--accent);">★</span>
-      <span onclick="selectStar(3)" id="rs3" style="color:var(--accent);">★</span>
-      <span onclick="selectStar(4)" id="rs4" style="color:var(--accent);">★</span>
-      <span onclick="selectStar(5)" id="rs5" style="color:var(--accent);">★</span>
-    </div></div>
-    <div class="form-group"><label class="lbl">Vélemény</label><textarea class="inp" id="rev-text" rows="4" placeholder="Írd le a tapasztalatod..."></textarea></div>
-    <button class="btn btn-primary btn-w" onclick="submitReview(this)">Küldés</button>
-    <p class="err" id="rev-err"></p></div>`;
-  document.getElementById('rev-stars').dataset.val='5';
-  window.selectStar=r=>{document.getElementById('rev-stars').dataset.val=r;[1,2,3,4,5].forEach(i=>{document.getElementById('rs'+i).style.color=i<=r?'var(--accent)':'var(--border2)';});};
+  const el=document.createElement('div');
+  el.className='overlay';
+  el.id='review-form-overlay';
+  let currentRating=5;
+  el.innerHTML='<div class="modal"><button class="modal-close" onclick="document.getElementById(\'review-form-overlay\').remove()">✕</button><div class="modal-title">Értékelés írása</div><div class="form-group"><label class="lbl">Értékelés</label><div id="star-picker" style="display:flex;gap:10px;font-size:2rem;cursor:pointer;margin-bottom:4px;"><span id="st1">★</span><span id="st2">★</span><span id="st3">★</span><span id="st4">★</span><span id="st5">★</span></div></div><div class="form-group"><label class="lbl">Vélemény</label><textarea class="inp" id="rev-text-inp" rows="4" placeholder="Írd le a tapasztalatod..."></textarea></div><button class="btn btn-primary btn-w" id="rev-submit-btn">Küldés</button><p class="err" id="rev-err-msg"></p></div>';
   document.body.appendChild(el);
+  // Stars
+  let selRating=5;
+  function paintStars(n){
+    for(let i=1;i<=5;i++){
+      const s=document.getElementById('st'+i);
+      s.style.color=i<=n?'var(--accent)':'var(--border2)';
+    }
+  }
+  paintStars(5);
+  for(let i=1;i<=5;i++){
+    document.getElementById('st'+i).addEventListener('click',(function(n){return function(){selRating=n;paintStars(n);};})(i));
+  }
+  document.getElementById('rev-submit-btn').addEventListener('click',async function(){
+    const text=document.getElementById('rev-text-inp').value.trim();
+    const errEl=document.getElementById('rev-err-msg');
+    if(!text){errEl.innerText='Írj valamit!';return;}
+    this.disabled=true;this.innerText='Küldés...';
+    try{
+      await addDoc(collection(db,'mgiReviews'),{
+        uid:me.uid,
+        userName:meData.name||me.displayName||'Névtelen',
+        rating:selRating,
+        text:text,
+        createdAt:serverTimestamp()
+      });
+      document.getElementById('review-form-overlay').remove();
+      toast('✅ Köszönjük az értékelést!');
+      loadReviews();
+    }catch(e){
+      errEl.innerText='Hiba: '+e.message;
+      this.disabled=false;this.innerText='Küldés';
+      console.error(e);
+    }
+  });
 };
+
 window.submitReview=async btn=>{
-  const rating=parseInt(document.getElementById('rev-stars').dataset.val||'5');
-  const text=document.getElementById('rev-text').value.trim();
-  if(!text){document.getElementById('rev-err').innerText='Írj valamit!';return;}
-  btn.disabled=true;
-  await addDoc(collection(db,"mgiReviews"),{uid:me.uid,userName:meData.name||me.displayName||'Névtelen',rating,text,createdAt:serverTimestamp()});
-  btn.closest('.overlay').remove();toast('✅ Köszönjük az értékelést!');loadReviews();
+  // legacy – not used
 };
 
 // ── PROFILE ──
@@ -1439,17 +1477,16 @@ window.onServiceSelect=()=>{selectedServiceId=document.getElementById('book-serv
 
 // ── WEEKLY SCHEDULE ──
 let weekOffset=0;
-function getWeekDates(offset=0){
+function getWeekDates(offset){
   const now=new Date();
   const day=now.getDay();
   const monday=new Date(now);
   monday.setDate(now.getDate()-(day===0?6:day-1)+offset*7);
   monday.setHours(0,0,0,0);
-  const days=[];
-  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);days.push(d);}
-  return days;
+  const result=[];
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);result.push(d);}
+  return result;
 }
-const DAYS_HU=['Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat','Vasárnap'];
 const DAYS_SHORT=['H','K','Sze','Cs','P','Szo','V'];
 
 window.prevWeek=()=>{weekOffset--;renderWeekSchedule();};
@@ -1459,224 +1496,200 @@ async function renderWeekSchedule(){
   const days=getWeekDates(weekOffset);
   const from=days[0].toISOString().slice(0,10);
   const to=days[6].toISOString().slice(0,10);
-  const opts={month:'long',day:'numeric'};
-  document.getElementById('week-title').innerText=`${days[0].toLocaleDateString('hu-HU',opts)} – ${days[6].toLocaleDateString('hu-HU',opts)}`;
   const grid=document.getElementById('week-grid');
+  if(!grid)return;
+  // Title
+  const o={month:'long',day:'numeric'};
+  document.getElementById('week-title').innerText=
+    days[0].toLocaleDateString('hu-HU',o)+' – '+days[6].toLocaleDateString('hu-HU',o);
   grid.innerHTML='<div style="color:var(--muted);padding:20px;grid-column:1/-1;">⏳ Betöltés...</div>';
   try{
-  // Load one-time lessons for this week
-  const snap=await getDocs(query(collection(db,'mgiLessons'),where('date','>=',from),where('date','<=',to)));
-  // Note: no orderBy to avoid composite index requirement
-  const lessonsByDate={};
-  snap.forEach(d=>{const l={id:d.id,...d.data()};if(!lessonsByDate[l.date])lessonsByDate[l.date]=[];lessonsByDate[l.date].push(l);});
-  // Load all recurring lessons (no orderBy needed - avoid index requirement)
-  const recSnap=await getDocs(collection(db,'mgiRecurringLessons'));
-  const recurring=[];recSnap.forEach(d=>recurring.push({id:d.id,...d.data()}));
-  const todayStr=new Date().toISOString().slice(0,10);
-  grid.innerHTML='';
-  days.forEach((date,i)=>{
-    const ds=date.toISOString().slice(0,10);
-    const isToday=ds===todayStr;
-    const dayNum=i; // 0=Mon...6=Sun
-    // Get recurring for this weekday
-    const recForDay=recurring.filter(r=>r.weekday===dayNum);
-    // Get one-time lessons
-    const oneTime=lessonsByDate[ds]||[];
-    const col=document.createElement('div');col.className='week-day-col';
-    col.innerHTML=`<div class="week-day-hdr${isToday?' today':''}"><div class="week-day-name">${DAYS_SHORT[i]}</div><div class="week-day-num">${date.getDate()}</div></div><div class="week-lessons" id="wl-${ds}"></div>`;
-    grid.appendChild(col);
-    const lessonWrap=col.querySelector('.week-lessons');
-    // Render recurring
-    recForDay.sort((a,b)=>a.time.localeCompare(b.time)).forEach(r=>{
-      const chip=document.createElement('div');chip.className='lesson-chip';
-      chip.innerHTML=`<div class="lesson-chip-time">${r.time}</div><div class="lesson-chip-name">${esc(r.name)}</div><div class="lesson-chip-count">👥 ${(r.students||[]).length} tanuló</div>`;
-      chip.onclick=()=>openLessonModal(r,ds,true);
-      lessonWrap.appendChild(chip);
+    // Load one-time lessons (no orderBy = no index needed)
+    const snapL=await getDocs(query(collection(db,'mgiLessons'),where('date','>=',from),where('date','<=',to)));
+    const byDate={};
+    snapL.forEach(d=>{const l={id:d.id,...d.data()};if(!byDate[l.date])byDate[l.date]=[];byDate[l.date].push(l);});
+    // Load recurring
+    const snapR=await getDocs(collection(db,'mgiRecurringLessons'));
+    const recurring=[];
+    snapR.forEach(d=>recurring.push({id:d.id,...d.data()}));
+    const todayStr=days[0].toISOString().slice(0,10).slice(0,10);
+    const nowStr=new Date().toISOString().slice(0,10);
+    grid.innerHTML='';
+    days.forEach(function(date,i){
+      const ds=date.toISOString().slice(0,10);
+      const isToday=ds===nowStr;
+      const col=document.createElement('div');col.className='week-day-col';
+      col.innerHTML='<div class="week-day-hdr'+(isToday?' today':'')+'"><div class="week-day-name">'+DAYS_SHORT[i]+'</div><div class="week-day-num">'+date.getDate()+'</div></div><div class="week-lessons" id="wl-'+ds+'"></div>';
+      grid.appendChild(col);
+      const wrap=col.querySelector('.week-lessons');
+      // Recurring for this weekday (i=0 Mon ... 6=Sun)
+      const recDay=recurring.filter(function(r){return r.weekday===i;});
+      recDay.sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
+      recDay.forEach(function(r){
+        const chip=document.createElement('div');chip.className='lesson-chip';
+        chip.innerHTML='<div class="lesson-chip-time">'+(r.time||'')+'</div><div class="lesson-chip-name">'+esc(r.name||'')+'</div><div class="lesson-chip-count">👥 '+((r.students||[]).length)+' tanuló</div>';
+        chip.addEventListener('click',function(){openLessonModal(r,ds,true);});
+        wrap.appendChild(chip);
+      });
+      // One-time
+      const oneTime=byDate[ds]||[];
+      oneTime.sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
+      oneTime.forEach(function(l){
+        const chip=document.createElement('div');chip.className='lesson-chip';
+        chip.innerHTML='<div class="lesson-chip-time">'+(l.time||'')+'</div><div class="lesson-chip-name">'+esc(l.name||'')+'</div><div class="lesson-chip-count">👥 '+((l.students||[]).length)+' tanuló</div>';
+        chip.addEventListener('click',function(){openLessonModal(l,ds,false);});
+        wrap.appendChild(chip);
+      });
+      // + Add button
+      const addBtn=document.createElement('div');addBtn.className='lesson-chip add-chip';addBtn.innerHTML='+';
+      addBtn.addEventListener('click',function(){openAddLesson(ds,i);});
+      wrap.appendChild(addBtn);
     });
-    oneTime.sort((a,b)=>a.time.localeCompare(b.time)).forEach(l=>{
-      const chip=document.createElement('div');chip.className='lesson-chip';
-      chip.innerHTML=`<div class="lesson-chip-time">${l.time}</div><div class="lesson-chip-name">${esc(l.name)}</div><div class="lesson-chip-count">👥 ${(l.students||[]).length} tanuló</div>`;
-      chip.onclick=()=>openLessonModal(l,ds,false);
-      lessonWrap.appendChild(chip);
-    });
-    // Add button
-    const addChip=document.createElement('div');addChip.className='lesson-chip add-chip';addChip.innerHTML='+';
-    addChip.onclick=()=>openAddLesson(ds,dayNum);
-    lessonWrap.appendChild(addChip);
-  });
-  }catch(e){grid.innerHTML=`<div style="color:var(--danger);padding:20px;grid-column:1/-1;">Hiba: ${e.message}</div>`;console.error(e);}
+  }catch(e){
+    grid.innerHTML='<div style="color:var(--danger);padding:20px;grid-column:1/-1;">Hiba az órarend betöltésekor: '+e.message+'</div>';
+    console.error('renderWeekSchedule error:',e);
+  }
 }
 
-// Open add lesson modal
-window.openAddLesson=async(date,weekday)=>{
+window.openAddLesson=async function(date,weekday){
+  const snapU=await getDocs(collection(db,'mgiUsers'));
+  let opts='';
+  snapU.forEach(function(d){if(d.data().role==='user')opts+='<option value="'+d.id+'">'+esc(d.data().name||'?')+'</option>';});
   const el=document.createElement('div');el.className='overlay';el.id='addlesson-overlay';
-  // Load all users for student picker
-  const snap=await getDocs(collection(db,'mgiUsers'));
-  let userOpts='';snap.forEach(d=>{if(d.data().role==='user')userOpts+=`<option value="${d.id}">${esc(d.data().name||'?')}</option>`;});
-  el.innerHTML=`<div class="modal">
-    <button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button>
-    <div class="modal-title">Új óra hozzáadása</div>
-    <div class="form-group"><label class="lbl">Óra neve</label><input class="inp" type="text" id="al-name" placeholder="pl. Kezdő gitáróra"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="lbl">Időpont</label><input class="inp" type="time" id="al-time-inp" value="10:00"></div>
-      <div class="form-group"><label class="lbl">Típus</label>
-        <select class="inp" id="al-type" style="margin-bottom:0;">
-          <option value="recurring">Fix ismétlődő (hetente)</option>
-          <option value="onetime">Csak ez az alkalom</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group"><label class="lbl">Tanulók hozzárendelése</label>
-      <select class="inp" id="al-students" multiple style="min-height:100px;margin-bottom:0;">${userOpts}</select>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Ctrl/Cmd + kattintás = több kiválasztás</div>
-    </div>
-    <button class="btn btn-primary btn-w" style="margin-top:8px;" onclick="saveLesson('${date}',${weekday})">💾 Mentés</button>
-    <p class="err" id="al-err"></p>
-  </div>`;
+  el.innerHTML='<div class="modal"><button class="modal-close" onclick="document.getElementById(\'addlesson-overlay\').remove()">✕</button><div class="modal-title">Új óra</div><div class="form-group"><label class="lbl">Óra neve *</label><input class="inp" type="text" id="al-name-f" placeholder="pl. Kezdő gitáróra"></div><div class="form-row"><div class="form-group"><label class="lbl">Időpont *</label><input class="inp" type="time" id="al-time-f" value="10:00"></div><div class="form-group"><label class="lbl">Típus</label><select class="inp" id="al-type-f" style="margin-bottom:0;"><option value="recurring">Hetente ismétlődő</option><option value="onetime">Csak ez az alkalom</option></select></div></div><div class="form-group"><label class="lbl">Tanulók</label><select class="inp" id="al-students-f" multiple style="min-height:90px;margin-bottom:0;">'+opts+'</select><div style="font-size:11px;color:var(--muted);margin-top:4px;">Ctrl + kattintás = több kiválasztás</div></div><button class="btn btn-primary btn-w" id="al-save-btn" style="margin-top:10px;">💾 Mentés</button><p class="err" id="al-err-f"></p></div>';
   document.body.appendChild(el);
-};
-
-window.saveLesson=async(date,weekday)=>{
-  const name=document.getElementById('al-name').value.trim();
-  const time=document.getElementById('al-time-inp').value;
-  const type=document.getElementById('al-type').value;
-  const sel=document.getElementById('al-students');
-  const students=[...sel.selectedOptions].map(o=>o.value);
-  if(!name||!time){document.getElementById('al-err').innerText='Töltsd ki a kötelező mezőket!';return;}
-  const data={name,time,students,createdAt:serverTimestamp()};
-  if(type==='recurring'){data.weekday=weekday;await addDoc(collection(db,'mgiRecurringLessons'),data);}
-  else{data.date=date;await addDoc(collection(db,'mgiLessons'),data);}
-  document.getElementById('addlesson-overlay').remove();
-  toast('✅ Óra hozzáadva!');renderWeekSchedule();
-};
-
-// Open lesson attendance modal
-window.openLessonModal=async(lesson,date,isRecurring)=>{
-  const el=document.createElement('div');el.className='overlay';el.id='attendance-overlay';
-  el.innerHTML=`<div class="modal wide">
-    <button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button>
-    <div class="modal-title">${esc(lesson.name)}</div>
-    <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">📅 ${friendlyDate(date)} &nbsp;·&nbsp; 🕐 ${lesson.time}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Jelenléti ív</div>
-      <button class="btn btn-outline btn-sm" onclick="openAddStudentToLesson('${lesson.id}','${date}',${isRecurring})">+ Tanuló hozzáadása</button>
-    </div>
-    <div class="attendance-list" id="att-list"><div style="color:var(--muted);text-align:center;padding:20px;">Betöltés...</div></div>
-    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="saveAttendance('${lesson.id}','${date}',${isRecurring})">💾 Jelenléti ív mentése</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteLesson('${lesson.id}',${isRecurring})">🗑 Óra törlése</button>
-    </div>
-    <p class="suc" id="att-msg"></p>
-  </div>`;
-  document.body.appendChild(el);
-  await loadAttendanceList(lesson,date,isRecurring);
-};
-
-const attState={};// uid -> 'present'|'absent'|'cash'
-
-async function loadAttendanceList(lesson,date,isRecurring){
-  const list=document.getElementById('att-list');list.innerHTML='';
-  // Load existing attendance for this date
-  const attSnap=await getDocs(query(collection(db,'mgiAttendance'),where('lessonId','==',lesson.id),where('date','==',date)));
-  const existingAtt={};attSnap.forEach(d=>{const a=d.data();existingAtt[a.uid]={...a,docId:d.id};});
-  Object.keys(attState).forEach(k=>delete attState[k]);
-  // Load students
-  const students=lesson.students||[];
-  if(!students.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px;">Nincs hozzárendelt tanuló. Adj hozzá!</div>';return;}
-  for(const uid of students){
-    const u=await getCachedUser(uid);
-    // Get active pass
-    const psnap=await getDocs(query(collection(db,'mgiPasses'),where('uid','==',uid),where('status','==','active')));
-    let passInfo='<span style="color:var(--danger);font-size:11px;">❌ Nincs bérlet</span>';
-    let passId=null;let passLeft=0;
-    if(!psnap.empty){const p={id:psnap.docs[0].id,...psnap.docs[0].data()};passId=p.id;passLeft=p.lessonsLeft;passInfo=`<span style="color:var(--accent2);font-size:11px;">🎫 ${p.name} – ${p.lessonsLeft} alkalom</span>`;}
-    const existing=existingAtt[uid];
-    const curState=existing?existing.status:'';
-    attState[uid]={status:curState,passId,passLeft,docId:existing?.docId||null};
-    const row=document.createElement('div');row.className='att-row';
-    row.dataset.uid=uid;
-    row.innerHTML=`
-      <img class="att-av" src="${u.avatar}" onerror="this.innerText='👤'">
-      <div style="flex:1;min-width:0;">
-        <div class="att-name">${esc(u.name)}</div>
-        <div class="att-pass">${passInfo}</div>
-      </div>
-      <div class="att-btns">
-        <button class="att-btn ${curState==='present'?'active-present':''}" title="Jelen" onclick="setAtt('${uid}','present',this)">✅</button>
-        <button class="att-btn ${curState==='absent'?'active-absent':''}" title="Hiányzik" onclick="setAtt('${uid}','absent',this)">❌</button>
-        <button class="att-btn ${curState==='cash'?'active-cash':''}" title="Helyszíni fizetés" onclick="setAtt('${uid}','cash',this)">💵</button>
-      </div>`;
-    list.appendChild(row);
-  }
-}
-
-window.setAtt=(uid,status,btn)=>{
-  // Toggle
-  if(attState[uid]?.status===status){attState[uid].status='';btn.closest('.att-btns').querySelectorAll('.att-btn').forEach(b=>b.className='att-btn');return;}
-  attState[uid]={...attState[uid],status};
-  btn.closest('.att-btns').querySelectorAll('.att-btn').forEach(b=>b.className='att-btn');
-  if(status==='present')btn.className='att-btn active-present';
-  else if(status==='absent')btn.className='att-btn active-absent';
-  else if(status==='cash')btn.className='att-btn active-cash';
-};
-
-window.saveAttendance=async(lessonId,date,isRecurring)=>{
-  const msg=document.getElementById('att-msg');msg.innerText='';
-  for(const [uid,state] of Object.entries(attState)){
-    if(!state.status)continue;
-    const data={lessonId,uid,date,status:state.status,savedAt:serverTimestamp()};
-    if(state.docId){await updateDoc(doc(db,'mgiAttendance',state.docId),data);}
-    else{await addDoc(collection(db,'mgiAttendance'),data);}
-    // Deduct pass if present and has pass
-    if(state.status==='present'&&state.passId&&state.passLeft>0){
-      const newLeft=state.passLeft-1;
-      await updateDoc(doc(db,'mgiPasses',state.passId),{lessonsLeft:newLeft,lastUsed:serverTimestamp()});
-      if(newLeft<=0){
-        await updateDoc(doc(db,'mgiPasses',state.passId),{status:'expired'});
-        // Send expiry email
-        const uData=await getCachedUser(uid);
-        try{await emailjs.send(EJS_SVC,EJS_PASS_EXPIRED,{to_name:uData.name,to_email:uData.email||'',pass_name:'Bérlet',end_date:new Date().toLocaleDateString('hu-HU'),lessons_used:uData.lessonsTotal||'?',lessons_total:uData.lessonsTotal||'?'});}catch(e){console.warn('EJS:',e);}
-        toast(`⚠️ ${uData.name} bérlte elfogyott!`,4000);
+  document.getElementById('al-save-btn').addEventListener('click',async function(){
+    const name=document.getElementById('al-name-f').value.trim();
+    const time=document.getElementById('al-time-f').value;
+    const type=document.getElementById('al-type-f').value;
+    const sel=document.getElementById('al-students-f');
+    const students=Array.from(sel.selectedOptions).map(function(o){return o.value;});
+    if(!name||!time){document.getElementById('al-err-f').innerText='Töltsd ki a kötelező mezőket!';return;}
+    this.disabled=true;this.innerText='Mentés...';
+    try{
+      if(type==='recurring'){
+        await addDoc(collection(db,'mgiRecurringLessons'),{name:name,time:time,weekday:weekday,students:students,createdAt:serverTimestamp()});
+      }else{
+        await addDoc(collection(db,'mgiLessons'),{name:name,time:time,date:date,students:students,createdAt:serverTimestamp()});
       }
-      state.passLeft=newLeft;
+      document.getElementById('addlesson-overlay').remove();
+      toast('✅ Óra hozzáadva!');
+      renderWeekSchedule();
+    }catch(e){
+      document.getElementById('al-err-f').innerText='Hiba: '+e.message;
+      this.disabled=false;this.innerText='💾 Mentés';
+      console.error(e);
     }
-  }
-  msg.innerText='✅ Jelenléti ív mentve!';
-  setTimeout(()=>msg.innerText='',2500);
-  renderWeekSchedule();
+  });
 };
 
-window.openAddStudentToLesson=async(lessonId,date,isRecurring)=>{
-  const snap=await getDocs(collection(db,'mgiUsers'));
-  let opts='';snap.forEach(d=>{if(d.data().role==='user')opts+=`<option value="${d.id}">${esc(d.data().name||'?')}</option>`;});
-  const el=document.createElement('div');el.className='overlay';
-  el.innerHTML=`<div class="modal"><button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button>
-    <div class="modal-title">Tanuló hozzáadása</div>
-    <select class="inp" id="add-stu-sel" multiple style="min-height:120px;">${opts}</select>
-    <button class="btn btn-primary btn-w" style="margin-top:8px;" onclick="addStudentsToLesson('${lessonId}',${isRecurring},this)">Hozzáadás</button></div>`;
+window.openLessonModal=async function(lesson,date,isRecurring){
+  const el=document.createElement('div');el.className='overlay';el.id='attendance-overlay';
+  el.innerHTML='<div class="modal wide"><button class="modal-close" onclick="document.getElementById(\'attendance-overlay\').remove()">✕</button><div class="modal-title">'+esc(lesson.name||'')+'</div><div style="color:var(--muted);font-size:13px;margin-bottom:16px;">📅 '+friendlyDate(date)+' · 🕐 '+(lesson.time||'')+'</div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Jelenléti ív</div><button class="btn btn-outline btn-sm" id="att-add-stu-btn">+ Tanuló</button></div><div class="attendance-list" id="att-list-inner"><div style="color:var(--muted);padding:20px;text-align:center;">⏳ Betöltés...</div></div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" id="att-save-btn">💾 Jelenléti ív mentése</button><button class="btn btn-danger btn-sm" id="att-del-btn">🗑 Óra törlése</button></div><p class="suc" id="att-suc-msg"></p></div>';
   document.body.appendChild(el);
-};
-
-window.addStudentsToLesson=async(lessonId,isRecurring,btn)=>{
-  const sel=document.getElementById('add-stu-sel');
-  const newStudents=[...sel.selectedOptions].map(o=>o.value);
-  if(!newStudents.length)return;
-  const coll=isRecurring?'mgiRecurringLessons':'mgiLessons';
-  const lsnap=await getDoc(doc(db,coll,lessonId));
-  const existing=lsnap.data().students||[];
-  const merged=[...new Set([...existing,...newStudents])];
-  await updateDoc(doc(db,coll,lessonId),{students:merged});
-  btn.closest('.overlay').remove();
-  document.getElementById('attendance-overlay').remove();
-  toast('✅ Tanuló hozzáadva!');renderWeekSchedule();
+  const attState={};
+  // Load attendance
+  async function refreshAttList(){
+    const listEl=document.getElementById('att-list-inner');
+    listEl.innerHTML='';
+    const attSnap=await getDocs(query(collection(db,'mgiAttendance'),where('lessonId','==',lesson.id),where('date','==',date)));
+    const existingAtt={};
+    attSnap.forEach(function(d){existingAtt[d.data().uid]={...d.data(),docId:d.id};});
+    const students=lesson.students||[];
+    if(!students.length){listEl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Nincs hozzárendelt tanuló.</div>';return;}
+    for(const uid of students){
+      const u=await getCachedUser(uid);
+      const pSnap=await getDocs(query(collection(db,'mgiPasses'),where('uid','==',uid),where('status','==','active')));
+      let passId=null,passLeft=0,passInfo='<span style="color:var(--danger);font-size:11px;">❌ Nincs bérlet</span>';
+      if(!pSnap.empty){const p={id:pSnap.docs[0].id,...pSnap.docs[0].data()};passId=p.id;passLeft=p.lessonsLeft;passInfo='<span style="color:var(--accent2);font-size:11px;">🎫 '+esc(p.name)+' – '+p.lessonsLeft+' alkalom</span>';}
+      const ex=existingAtt[uid];
+      const cur=ex?ex.status:'';
+      if(!attState[uid])attState[uid]={status:cur,passId,passLeft,docId:ex?ex.docId:null};
+      const row=document.createElement('div');row.className='att-row';
+      row.innerHTML='<img class="att-av" src="'+u.avatar+'" onerror="this.style.display=\'none\'"><div style="flex:1;min-width:0;"><div class="att-name">'+esc(u.name)+'</div><div class="att-pass">'+passInfo+'</div></div><div class="att-btns"><button class="att-btn '+(cur==='present'?'active-present':'')+'" data-uid="'+uid+'" data-st="present" title="Jelen">✅</button><button class="att-btn '+(cur==='absent'?'active-absent':'')+'" data-uid="'+uid+'" data-st="absent" title="Hiányzik">❌</button><button class="att-btn '+(cur==='cash'?'active-cash':'')+'" data-uid="'+uid+'" data-st="cash" title="Helyszíni fizetés">💵</button></div>';
+      listEl.appendChild(row);
+    }
+    // Att btn click
+    listEl.querySelectorAll('.att-btn').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        const uid=this.dataset.uid,st=this.dataset.st;
+        const prev=attState[uid]?attState[uid].status:'';
+        attState[uid]=attState[uid]||{};
+        attState[uid].status=prev===st?'':st;
+        const row=this.closest('.att-row');
+        row.querySelectorAll('.att-btn').forEach(function(b){b.className='att-btn';});
+        if(attState[uid].status==='present')this.className='att-btn active-present';
+        else if(attState[uid].status==='absent')this.className='att-btn active-absent';
+        else if(attState[uid].status==='cash')this.className='att-btn active-cash';
+      });
+    });
+  }
+  await refreshAttList();
+  // Add student btn
+  document.getElementById('att-add-stu-btn').addEventListener('click',async function(){
+    const snapU=await getDocs(collection(db,'mgiUsers'));
+    let opts='';snapU.forEach(function(d){if(d.data().role==='user'&&!(lesson.students||[]).includes(d.id))opts+='<option value="'+d.id+'">'+esc(d.data().name||'?')+'</option>';});
+    const e2=document.createElement('div');e2.className='overlay';e2.id='addstu-overlay';
+    e2.innerHTML='<div class="modal"><button class="modal-close" onclick="document.getElementById(\'addstu-overlay\').remove()">✕</button><div class="modal-title">Tanuló hozzáadása</div><select class="inp" id="addstu-sel" multiple style="min-height:120px;">'+opts+'</select><button class="btn btn-primary btn-w" id="addstu-save" style="margin-top:8px;">Hozzáadás</button></div>';
+    document.body.appendChild(e2);
+    document.getElementById('addstu-save').addEventListener('click',async function(){
+      const sel=document.getElementById('addstu-sel');
+      const newS=Array.from(sel.selectedOptions).map(function(o){return o.value;});
+      if(!newS.length)return;
+      const coll=isRecurring?'mgiRecurringLessons':'mgiLessons';
+      const merged=[...new Set([...(lesson.students||[]),...newS])];
+      await updateDoc(doc(db,coll,lesson.id),{students:merged});
+      lesson.students=merged;
+      document.getElementById('addstu-overlay').remove();
+      await refreshAttList();
+      toast('✅ Tanuló hozzáadva!');
+    });
+  });
+  // Save attendance
+  document.getElementById('att-save-btn').addEventListener('click',async function(){
+    const sucEl=document.getElementById('att-suc-msg');
+    this.disabled=true;this.innerText='Mentés...';
+    try{
+      for(const uid in attState){
+        const st=attState[uid];
+        if(!st.status)continue;
+        const data={lessonId:lesson.id,uid:uid,date:date,status:st.status,savedAt:serverTimestamp()};
+        if(st.docId)await updateDoc(doc(db,'mgiAttendance',st.docId),data);
+        else{const ref=await addDoc(collection(db,'mgiAttendance'),data);st.docId=ref.id;}
+        if(st.status==='present'&&st.passId&&st.passLeft>0){
+          const newLeft=st.passLeft-1;
+          await updateDoc(doc(db,'mgiPasses',st.passId),{lessonsLeft:newLeft,lastUsed:serverTimestamp()});
+          st.passLeft=newLeft;
+          if(newLeft<=0){
+            await updateDoc(doc(db,'mgiPasses',st.passId),{status:'expired'});
+            const uData=await getCachedUser(uid);
+            try{await emailjs.send(EJS_SVC,EJS_PASS_EXPIRED,{to_name:uData.name,to_email:uData.email||'',pass_name:'Bérlet',end_date:new Date().toLocaleDateString('hu-HU'),lessons_used:'?',lessons_total:'?'});}catch(err){console.warn('EJS:',err);}
+            toast('⚠️ '+uData.name+' bérlete elfogyott!',4000);
+          }
+        }
+      }
+      sucEl.innerText='✅ Mentve!';
+      renderWeekSchedule();
+    }catch(e){sucEl.innerText='Hiba: '+e.message;console.error(e);}
+    this.disabled=false;this.innerText='💾 Jelenléti ív mentése';
+  });
+  // Delete lesson
+  document.getElementById('att-del-btn').addEventListener('click',async function(){
+    if(!confirm('Biztosan törlöd az órát?'))return;
+    const coll=isRecurring?'mgiRecurringLessons':'mgiLessons';
+    await deleteDoc(doc(db,coll,lesson.id));
+    document.getElementById('attendance-overlay').remove();
+    toast('🗑 Óra törölve!');
+    renderWeekSchedule();
+  });
 };
 
 window.deleteLesson=async(lessonId,isRecurring)=>{
   if(!confirm('Biztosan törlöd az órát?'))return;
   const coll=isRecurring?'mgiRecurringLessons':'mgiLessons';
   await deleteDoc(doc(db,coll,lessonId));
-  document.getElementById('attendance-overlay').remove();
-  toast('🗑 Óra törölve!');renderWeekSchedule();
+  toast('🗑 Óra törölve!');
+  renderWeekSchedule();
 };
 </script>
 </body>
