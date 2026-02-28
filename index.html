@@ -1240,9 +1240,11 @@ window.sendNewMessage=async()=>{
 // ── REVIEWS ──
 async function loadReviews(){
   const list=document.getElementById('reviews-list');list.innerHTML='';
-  const snap=await getDocs(query(collection(db,"mgiReviews"),orderBy("createdAt","desc")));
+  const snap=await getDocs(collection(db,"mgiReviews"));
   if(snap.empty){list.innerHTML='<div style="color:var(--muted);padding:20px;text-align:center;">Még nincsenek értékelések. Legyél az első!</div>';return;}
-  snap.forEach(d=>{
+  const revDocs=[];snap.forEach(d=>revDocs.push({id:d.id,...d.data()}));
+  revDocs.sort((a,b)=>{const ta=a.createdAt?.toDate?a.createdAt.toDate():new Date(a.createdAt||0);const tb=b.createdAt?.toDate?b.createdAt.toDate():new Date(b.createdAt||0);return tb-ta;});
+  revDocs.forEach(d=>{const r=d;
     const r=d.data();
     const stars='★'.repeat(r.rating||5)+'☆'.repeat(5-(r.rating||5));
     const card=document.createElement('div');card.className='review-card';
@@ -1254,11 +1256,19 @@ window.openReviewForm=()=>{
   let sel=5;
   const el=document.createElement('div');el.className='overlay';
   el.innerHTML=`<div class="modal"><button class="modal-close" onclick="this.closest('.overlay').remove()">✕</button><div class="modal-title">Értékelés</div>
-    <div class="form-group"><label class="lbl">Csillagok</label><div style="display:flex;gap:8px;font-size:1.8rem;cursor:pointer;" id="rev-stars">${[1,2,3,4,5].map(i=>`<span onclick="document.getElementById('rev-stars').dataset.val=${i};[...document.getElementById('rev-stars').children].forEach((s,j)=>s.style.color=j<${i}?'var(--accent)':'var(--border2)')" style="color:${i<=5?'var(--accent)':'var(--border2)'};">★</span>`).join('')}</div></div>
+    <div class="form-group"><label class="lbl">Csillagok</label>
+    <div style="display:flex;gap:8px;font-size:1.8rem;cursor:pointer;" id="rev-stars">
+      <span onclick="selectStar(1)" id="rs1" style="color:var(--accent);">★</span>
+      <span onclick="selectStar(2)" id="rs2" style="color:var(--accent);">★</span>
+      <span onclick="selectStar(3)" id="rs3" style="color:var(--accent);">★</span>
+      <span onclick="selectStar(4)" id="rs4" style="color:var(--accent);">★</span>
+      <span onclick="selectStar(5)" id="rs5" style="color:var(--accent);">★</span>
+    </div></div>
     <div class="form-group"><label class="lbl">Vélemény</label><textarea class="inp" id="rev-text" rows="4" placeholder="Írd le a tapasztalatod..."></textarea></div>
     <button class="btn btn-primary btn-w" onclick="submitReview(this)">Küldés</button>
     <p class="err" id="rev-err"></p></div>`;
   document.getElementById('rev-stars').dataset.val='5';
+  window.selectStar=r=>{document.getElementById('rev-stars').dataset.val=r;[1,2,3,4,5].forEach(i=>{document.getElementById('rs'+i).style.color=i<=r?'var(--accent)':'var(--border2)';});};
   document.body.appendChild(el);
 };
 window.submitReview=async btn=>{
@@ -1274,18 +1284,21 @@ window.submitReview=async btn=>{
 window.saveProfile=async()=>{
   const name=document.getElementById('prof-name-inp').value.trim();
   const ageGroup=document.getElementById('prof-age-inp').value;
-  await updateProfile(auth.currentUser,{displayName:name});
-  await updateDoc(doc(db,"mgiUsers",me.uid),{name,ageGroup});
-  meData.name=name;meData.ageGroup=ageGroup;delete userCache[me.uid];
-  document.getElementById('prof-name-disp').innerText=name;
-  document.getElementById('header-name').innerText=name.split(' ')[0];
-  const ageLabel2=ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
-  const lvlMap={beginner:'🟢 Kezdő',intermediate:'🟡 Középhaladó',advanced:'🔴 Haladó'};
-  const levelLabel2=`<span class="badge badge-orange" style="margin-left:6px;">${lvlMap[level]}</span>`;
-  const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
-  document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[meData.role||'user']||'Tanuló'}</span>${ageLabel2}${levelLabel2}`;
-  document.getElementById('prof-msg').innerText='✅ Mentve!';
-  setTimeout(()=>document.getElementById('prof-msg').innerText='',2500);
+  const level=document.getElementById('prof-level-inp').value;
+  try{
+    await updateProfile(auth.currentUser,{displayName:name});
+    await updateDoc(doc(db,"mgiUsers",me.uid),{name,ageGroup,level});
+    meData.name=name;meData.ageGroup=ageGroup;meData.level=level;delete userCache[me.uid];
+    document.getElementById('prof-name-disp').innerText=name;
+    document.getElementById('header-name').innerText=name.split(' ')[0];
+    const ageLabel2=ageGroup==='junior'?'<span class="badge badge-blue" style="margin-left:6px;">🎓 Junior</span>':'<span class="badge badge-green" style="margin-left:6px;">👤 Felnőtt</span>';
+    const lvlMap={beginner:'🟢 Kezdő',intermediate:'🟡 Középhaladó',advanced:'🔴 Haladó'};
+    const levelLabel2=`<span class="badge badge-orange" style="margin-left:6px;">${lvlMap[level]||level}</span>`;
+    const roleLabel={admin:'⚙️ Admin',coach:'🎸 Edző',user:'👤 Tanuló'};
+    document.getElementById('prof-role-disp').innerHTML=`<span class="badge badge-orange">${roleLabel[meData.role||'user']||'Tanuló'}</span>${ageLabel2}${levelLabel2}`;
+    document.getElementById('prof-msg').innerText='✅ Mentve!';
+    setTimeout(()=>document.getElementById('prof-msg').innerText='',2500);
+  }catch(e){document.getElementById('prof-msg').innerText='❌ Hiba: '+e.message;console.error(e);}
 };
 
 // ── PASS EXPIRY CHECK ──
@@ -1428,7 +1441,7 @@ window.addTimeSlots=async()=>{
 async function loadAdminTimeslots(){
   const list=document.getElementById('timeslots-admin-list');if(!list)return;list.innerHTML='';
   const today=new Date().toISOString().slice(0,10);
-  const snap=await getDocs(query(collection(db,"mgiSlots"),where("date",">=",today),orderBy("date","asc")));
+  const snap=await getDocs(query(collection(db,"mgiSlots"),where("date",">=",today)));
   const byDate={};snap.forEach(d=>{const s={id:d.id,...d.data()};if(!byDate[s.date])byDate[s.date]=[];byDate[s.date].push(s);});
   if(!Object.keys(byDate).length){list.innerHTML='<div style="color:var(--muted);font-size:13px;">Nincsenek közelgő időpontok.</div>';return;}
   Object.entries(byDate).forEach(([date,slots])=>{
@@ -1488,6 +1501,7 @@ async function renderWeekSchedule(){
   try{
   // Load one-time lessons for this week
   const snap=await getDocs(query(collection(db,'mgiLessons'),where('date','>=',from),where('date','<=',to)));
+  // Note: no orderBy to avoid composite index requirement
   const lessonsByDate={};
   snap.forEach(d=>{const l={id:d.id,...d.data()};if(!lessonsByDate[l.date])lessonsByDate[l.date]=[];lessonsByDate[l.date].push(l);});
   // Load all recurring lessons (no orderBy needed - avoid index requirement)
